@@ -24,20 +24,42 @@ requests using the same shared JWT secret as the rest of the platform.
 | GET  | /api/v1/notifications | List notifications for the caller's email |
 | GET  | /health | Health check |
 
-## Quick Start (Local)
+## Local setup — step by step
 
+> Prerequisites: Docker Desktop (running), Git. On Windows use Git Bash.
+
+**Step 1 — env (first time)**
 ```bash
 cp .env.example .env
-docker compose up --build
-# docs: http://localhost:8004/docs
 ```
+`JWT_SECRET_KEY` must match the platform's so inter-service tokens verify.
 
-## Tests
-
+**Step 2 — start**
 ```bash
-pip install -r requirements-dev.txt
-pytest
+docker compose up --build        # notify-db + notification:8004
 ```
+Wait for `notification_service_started` + `Application startup complete`.
+
+**Step 3 — open docs**: http://localhost:8004/docs
+
+**Hard reset** (after pulling changes — avoids stale cached code):
+```bash
+bash scripts/reset.sh            # down -v + build --no-cache + up
+```
+
+## Testing
+
+- **Postman:** this service is included in the platform's collection
+  (`cloudfile-platform/postman/`) under the **4. Notification** folder.
+- **Automated:**
+  ```bash
+  pip install -r requirements-dev.txt
+  pytest
+  ```
+
+> `/notify` requires a valid JWT. The easiest token source is the auth service's
+> `/login` (same `JWT_SECRET_KEY`). In Postman, run **Login** first and the token
+> is captured automatically.
 
 ## How it connects to the platform
 

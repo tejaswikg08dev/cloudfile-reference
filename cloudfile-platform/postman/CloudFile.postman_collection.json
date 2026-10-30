@@ -1,0 +1,246 @@
+{
+  "info": {
+    "name": "CloudFile Platform",
+    "description": "End-to-end collection for the CloudFile microservices (auth, files, search) plus the separate notification service. Login auto-saves the JWT to {{token}}; upload auto-saves {{file_id}}, {{upload_url}}, {{s3_key}}. Run the folder top-to-bottom for a full flow.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "auth_url", "value": "http://localhost:8001" },
+    { "key": "files_url", "value": "http://localhost:8002" },
+    { "key": "search_url", "value": "http://localhost:8003" },
+    { "key": "notify_url", "value": "http://localhost:8004" },
+    { "key": "email", "value": "me@example.com" },
+    { "key": "password", "value": "password123" },
+    { "key": "token", "value": "" },
+    { "key": "file_id", "value": "" },
+    { "key": "upload_url", "value": "" },
+    { "key": "s3_key", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Health checks",
+      "item": [
+        {
+          "name": "Auth health",
+          "request": { "method": "GET", "url": "{{auth_url}}/health" }
+        },
+        {
+          "name": "Files health",
+          "request": { "method": "GET", "url": "{{files_url}}/health" }
+        },
+        {
+          "name": "Search health",
+          "request": { "method": "GET", "url": "{{search_url}}/health" }
+        },
+        {
+          "name": "Notification health",
+          "request": { "method": "GET", "url": "{{notify_url}}/health" }
+        }
+      ]
+    },
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('registered or already exists', function () {",
+                  "  pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{auth_url}}/api/v1/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"full_name\": \"Demo User\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (saves token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('login ok', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('token', json.access_token);",
+                  "pm.test('token saved', function () { pm.expect(json.access_token).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{auth_url}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{auth_url}}/api/v1/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Files",
+      "item": [
+        {
+          "name": "Initiate upload (saves file_id + upload_url)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('upload initiated', function () { pm.response.to.have.status(201); });",
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('file_id', json.file_id);",
+                  "pm.collectionVariables.set('upload_url', json.upload_url);",
+                  "pm.collectionVariables.set('s3_key', json.s3_key);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{files_url}}/api/v1/files/upload",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filename\": \"demo.txt\",\n  \"content_type\": \"text/plain\",\n  \"size_bytes\": 12\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT bytes to presigned URL",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "text/plain" }],
+            "url": "{{upload_url}}",
+            "body": { "mode": "raw", "raw": "hello world!" }
+          }
+        },
+        {
+          "name": "Confirm upload (fires notification)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('confirmed', function () { pm.response.to.have.status(200); });",
+                  "pm.test('status ready', function () { pm.expect(pm.response.json().status).to.eql('ready'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{files_url}}/api/v1/files/confirm",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_id\": \"{{file_id}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List files",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{files_url}}/api/v1/files"
+          }
+        },
+        {
+          "name": "Download URL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{files_url}}/api/v1/files/{{file_id}}/download"
+          }
+        },
+        {
+          "name": "Delete file",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{files_url}}/api/v1/files/{{file_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Search",
+      "item": [
+        {
+          "name": "Search (all my files)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{search_url}}/api/v1/search?page=1&page_size=20"
+          }
+        },
+        {
+          "name": "Search by name",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{search_url}}/api/v1/search?name=demo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Notification",
+      "item": [
+        {
+          "name": "Send notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{notify_url}}/api/v1/notifications/notify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipient\": \"{{email}}\",\n  \"subject\": \"Hello\",\n  \"message\": \"A test notification\",\n  \"channel\": \"email\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List my notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{notify_url}}/api/v1/notifications"
+          }
+        }
+      ]
+    }
+  ]
+}

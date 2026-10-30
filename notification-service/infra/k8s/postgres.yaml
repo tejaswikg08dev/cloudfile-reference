@@ -1,0 +1,61 @@
+# Local-only Postgres for the notification service on Kubernetes (minikube).
+# In production use RDS and set the database_url secret accordingly.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: notify-db
+  namespace: cloudfile
+spec:
+  serviceName: notify-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notify-db
+  template:
+    metadata:
+      labels:
+        app: notify-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_USER
+              value: notify
+            - name: POSTGRES_PASSWORD
+              value: notify
+            - name: POSTGRES_DB
+              value: notifications
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: scram-sha-256
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "notify", "-d", "notifications"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notify-db
+  namespace: cloudfile
+spec:
+  selector:
+    app: notify-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None

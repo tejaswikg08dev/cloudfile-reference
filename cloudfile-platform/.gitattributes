@@ -1,0 +1,16 @@
+# Force LF line endings for shell scripts and other files that run inside
+# Linux containers. Without this, Windows checkouts can introduce CRLF, which
+# breaks shebangs ("/bin/sh^M: bad interpreter").
+*.sh            text eol=lf
+*.bash          text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.py            text eol=lf
+*.toml          text eol=lf
+*.ini           text eol=lf
+*.mako          text eol=lf
+Makefile        text eol=lf
+
+# Everything else: let Git decide, but normalize to LF in the repo.
+* text=auto eol=lf

@@ -66,32 +66,66 @@ Ingress ──► Auth    (8001) ──► PostgreSQL (users)
 |--------------|-------|
 | See the big picture, animated | [visual-docs/index.html](cloudfile-platform/visual-docs/index.html) |
 | Understand the design (HLD/LLD) | [03-high-level-design](cloudfile-platform/docs/03-high-level-design.md) · [04-low-level-design](cloudfile-platform/docs/04-low-level-design.md) |
-| Run it locally | [07-local-deployment](cloudfile-platform/docs/07-local-deployment.md) |
-| Deploy to the cloud | [10-cloud-deployment](cloudfile-platform/docs/10-cloud-deployment.md) |
+| Run it locally (full teaching guide) | [13-local-setup-complete](cloudfile-platform/docs/13-local-setup-complete.md) |
+| Deploy to AWS (full teaching guide) | [14-production-setup-complete](cloudfile-platform/docs/14-production-setup-complete.md) |
+| Test with Postman | [postman/](cloudfile-platform/postman/README.md) |
+| Fix a startup error | [12-troubleshooting](cloudfile-platform/docs/12-troubleshooting.md) |
 | Prep for interviews | [11-interview-prep](cloudfile-platform/docs/11-interview-prep.md) |
 | Read the notification service | [notification-service/docs](notification-service/docs/README.md) |
 
 ---
 
-## Run locally (quick)
+## Run locally — step by step
 
+> Prerequisites: Docker Desktop (running), Git, and `jq`. On Windows use Git Bash.
+> Full teaching guide: [13-local-setup-complete.md](cloudfile-platform/docs/13-local-setup-complete.md).
+
+**1) Clone**
 ```bash
-# Terminal 1 — core services
-cd cloudfile-platform
-cp .env.example .env
-docker compose up --build        # auth:8001 files:8002 search:8003 (+postgres +localstack)
-
-# Terminal 2 — notification service
-cd notification-service
-cp .env.example .env
-docker compose up --build        # notification:8004
-
-# Terminal 3 — end-to-end demo
-cd cloudfile-platform
-bash scripts/e2e-demo.sh
+git clone <your-repo-url> cloudfile
+cd cloudfile
 ```
 
-Full, step-by-step instructions: [local deployment guide](cloudfile-platform/docs/07-local-deployment.md).
+**2) Start the core platform** (Terminal 1)
+```bash
+cd cloudfile-platform
+cp .env.example .env
+docker compose up --build        # postgres, localstack, auth:8001, files:8002, search:8003
+```
+Wait for: `auth_service_started`, `files_service_started`, `search_service_started`.
+Open http://localhost:8001/docs, http://localhost:8002/docs, http://localhost:8003/docs.
+
+**3) Start the notification service** (Terminal 2)
+```bash
+cd notification-service
+cp .env.example .env
+docker compose up --build        # notify-db + notification:8004
+```
+Open http://localhost:8004/docs.
+
+**4) Run the end-to-end demo** (Terminal 3)
+```bash
+cd cloudfile-platform
+bash scripts/e2e-demo.sh         # register → login → upload → confirm → search → notify
+```
+
+**5) Or test with Postman** — import the collection + environment from
+[`cloudfile-platform/postman/`](cloudfile-platform/postman/README.md) and run the
+folders top to bottom (login auto-captures the token).
+
+**Hard reset** (after pulling changes, to avoid stale cached code):
+```bash
+bash scripts/reset.sh            # down -v + build --no-cache + up  (in each repo)
+```
+
+Full local guide: [07-local-deployment.md](cloudfile-platform/docs/07-local-deployment.md)
+· troubleshooting: [12-troubleshooting.md](cloudfile-platform/docs/12-troubleshooting.md).
+
+## Deploy to the cloud — step by step
+
+Full teaching guide: [14-production-setup-complete.md](cloudfile-platform/docs/14-production-setup-complete.md)
+(provision with Terraform → push images to ECR → roll ECS → verify → **destroy**).
+Kubernetes-on-minikube alternative (free): [10-cloud-deployment.md](cloudfile-platform/docs/10-cloud-deployment.md).
 
 ---
 

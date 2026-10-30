@@ -8,13 +8,17 @@ services:
       POSTGRES_USER: cloudfile
       POSTGRES_PASSWORD: cloudfile
       POSTGRES_MULTIPLE_DATABASES: cloudfile_auth,cloudfile_files
+      # Use scram-sha-256 instead of the default "trust" for local connections,
+      # which also removes the initdb "trust authentication" warning.
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cloudfile"]
+      test: ["CMD-SHELL", "pg_isready -U cloudfile -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,7 +34,8 @@ services:
       test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health || exit 1"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 15
+      start_period: 20s
 
   auth:
     build:
@@ -58,6 +63,9 @@ services:
       JWT_ALGORITHM: HS256
       S3_BUCKET_NAME: cloudfile-uploads
       S3_ENDPOINT_URL: http://localstack:4566
+      # Host-reachable endpoint baked into presigned URLs so a browser/curl on
+      # the host can actually upload/download (localstack:4566 is Docker-only).
+      S3_PUBLIC_ENDPOINT_URL: http://localhost:4566
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test

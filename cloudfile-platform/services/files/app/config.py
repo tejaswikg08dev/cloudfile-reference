@@ -22,7 +22,13 @@ class Settings(BaseSettings):
 
     # S3 / object storage
     s3_bucket_name: str = "cloudfile-uploads"
-    s3_endpoint_url: str | None = None  # LocalStack in dev; None uses real AWS
+    # Endpoint the SERVICE uses to talk to S3 (inside Docker: http://localstack:4566).
+    s3_endpoint_url: str | None = None  # None => real AWS
+    # Endpoint that appears in PRESIGNED URLs returned to the CLIENT. With
+    # LocalStack the service talks to "localstack:4566" (Docker DNS) but the
+    # browser must use "localhost:4566". If set, the generated URL's host is
+    # rewritten to this. Leave unset for real AWS.
+    s3_public_endpoint_url: str | None = None
     aws_region: str = "us-east-1"
     aws_access_key_id: str = "test"
     aws_secret_access_key: str = "test"
@@ -41,6 +47,7 @@ def get_settings() -> Settings:
         jwt_algorithm=os.getenv("JWT_ALGORITHM", defaults.jwt_algorithm),
         s3_bucket_name=os.getenv("S3_BUCKET_NAME", defaults.s3_bucket_name),
         s3_endpoint_url=os.getenv("S3_ENDPOINT_URL") or None,
+        s3_public_endpoint_url=os.getenv("S3_PUBLIC_ENDPOINT_URL") or None,
         aws_region=os.getenv("AWS_REGION", defaults.aws_region),
         aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", defaults.aws_access_key_id),
         aws_secret_access_key=os.getenv(

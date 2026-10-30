@@ -21,11 +21,19 @@ resource "aws_lambda_function" "processor" {
 
   environment {
     variables = {
-      # Set PROCESSOR_DATABASE_URL after RDS is known if DB updates are desired.
-      PROCESSOR_DATABASE_URL = ""
+      # psycopg2 DSN for the files DB. The handler only updates the DB if this
+      # is set AND psycopg2 is available in the package/layer; otherwise it
+      # safely skips the DB update (see services/processor/handler.py).
+      PROCESSOR_DATABASE_URL = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.main.address}:5432/${var.db_name}"
     }
   }
 }
+
+# IMPORTANT: handler.py imports Pillow and psycopg2. The zip above contains only
+# source files, so those libraries are NOT present by default and the Lambda
+# will skip thumbnails/DB updates (it degrades gracefully, it does not crash).
+# To enable them, attach a Lambda layer that provides Pillow + psycopg2, or
+# build a zip that includes dependencies (see services/processor/README.md).
 
 resource "aws_lambda_permission" "allow_s3" {
   statement_id  = "AllowS3Invoke"

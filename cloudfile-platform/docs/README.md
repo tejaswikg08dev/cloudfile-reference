@@ -17,6 +17,9 @@ Read in order for a guided learning path, or jump to what you need.
 | 09 | [09-development-guide.md](09-development-guide.md) | How to add a feature / a new service |
 | 10 | [10-cloud-deployment.md](10-cloud-deployment.md) | Kubernetes (minikube + EKS) and AWS (Terraform), with cost control |
 | 11 | [11-interview-prep.md](11-interview-prep.md) | Q&A, talking points, whiteboard-ready answers |
+| 12 | [12-troubleshooting.md](12-troubleshooting.md) | Every startup issue, root cause, and the fix applied |
+| 13 | [13-local-setup-complete.md](13-local-setup-complete.md) | Full teaching walkthrough: clone → running → tested |
+| 14 | [14-production-setup-complete.md](14-production-setup-complete.md) | Full AWS deploy: provision → push → verify → destroy |
 
 Also see:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — concise architecture reference

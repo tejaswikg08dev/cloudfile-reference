@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from shared.db_init import create_all_safe
 from shared.exceptions import install_exception_handlers
 from shared.logging_config import configure_logging, get_logger
 
@@ -20,8 +21,7 @@ logger = get_logger("files.main")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    await create_all_safe(engine, Base.metadata)
     # Ensure the bucket exists (useful for LocalStack/dev).
     try:
         get_s3_client().ensure_bucket()

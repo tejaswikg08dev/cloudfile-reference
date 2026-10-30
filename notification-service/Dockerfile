@@ -30,8 +30,10 @@ USER appuser
 
 EXPOSE 8004
 
+# 1 worker for local/dev so startup table creation never races. Scale workers
+# (or replicas in Kubernetes) in production, where Alembic owns the schema.
 CMD ["gunicorn", "app.main:app", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--workers", "2", \
+     "--workers", "1", \
      "--bind", "0.0.0.0:8004", \
      "--timeout", "60"]

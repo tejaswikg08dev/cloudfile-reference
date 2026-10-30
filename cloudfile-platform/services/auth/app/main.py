@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from shared.db_init import create_all_safe
 from shared.exceptions import install_exception_handlers
 from shared.logging_config import configure_logging, get_logger
 
@@ -19,10 +20,10 @@ logger = get_logger("auth.main")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # In local/dev we create tables on startup. In production, Alembic owns
-    # schema changes (see alembic/). create_all is safe & idempotent for dev.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # In local/dev we create tables on startup (idempotent + race-safe across
+    # gunicorn workers). In production, Alembic owns the schema; disable this
+    # with DB_AUTO_CREATE=false and run `alembic upgrade head` instead.
+    await create_all_safe(engine, Base.metadata)
     logger.info("auth_service_started")
     yield
     await engine.dispose()

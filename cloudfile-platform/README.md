@@ -42,18 +42,48 @@ Ingress ──► Auth    (8001) ──► PostgreSQL
 - GitHub Actions CI/CD
 - pytest, ruff, mypy
 
-## Quick Start (Local)
+## Local setup — step by step
 
+> Prerequisites: Docker Desktop (running), Git, `jq`. On Windows use Git Bash.
+> Full teaching guide with "what you should see" at each step:
+> [docs/13-local-setup-complete.md](docs/13-local-setup-complete.md).
+
+**Step 1 — configure env (first time only)**
 ```bash
 cp .env.example .env
+```
+Defaults work for local. The only value that must match across all services is
+`JWT_SECRET_KEY` (it's the same in both compose files already).
+
+**Step 2 — start the platform**
+```bash
 docker compose up --build
 ```
+Startup order: `postgres` (creates `cloudfile_auth` + `cloudfile_files`) →
+`localstack` (S3 on 4566) → `auth` (8001), `files` (8002), `search` (8003).
+Wait until you see each `*_service_started` and `Application startup complete`.
 
-- Auth docs:   http://localhost:8001/docs
-- Files docs:  http://localhost:8002/docs
-- Search docs: http://localhost:8003/docs
+**Step 3 — open the API docs**
+- Auth:   http://localhost:8001/docs
+- Files:  http://localhost:8002/docs
+- Search: http://localhost:8003/docs
 
-## Local commands
+**Step 4 — start the notification service** (separate repo, second terminal)
+```bash
+cd ../notification-service && cp .env.example .env && docker compose up --build
+# http://localhost:8004/docs
+```
+
+**Step 5 — verify end to end**
+```bash
+bash scripts/e2e-demo.sh    # register → login → upload → confirm → search → notify
+```
+
+**Step 6 — or test with Postman** — import from [`postman/`](postman/README.md)
+and run the folders top to bottom (login auto-saves the token; upload auto-saves
+the file id and presigned URL).
+
+### Local commands
 
 ```bash
 make up        # start everything
@@ -61,17 +91,18 @@ make down      # stop everything
 make test      # run all tests
 make lint      # ruff + mypy
 make migrate   # run DB migrations
+
+bash scripts/reset.sh   # HARD reset: down -v + build --no-cache + up
 ```
 
-## End-to-end demo
+> After pulling any code/Dockerfile change, run `bash scripts/reset.sh` so you
+> never run stale cached images. This avoids the most common class of errors.
 
-With both stacks running (this repo + notification-service):
+## Testing
 
-```bash
-bash scripts/e2e-demo.sh
-```
-
-Runs register → login → upload → PUT to S3 → confirm → list → search → notify.
+- Postman: [`postman/`](postman/README.md) — full collection + local environment.
+- Automated: see [docs/08-testing.md](docs/08-testing.md).
+- Troubleshooting any startup error: [docs/12-troubleshooting.md](docs/12-troubleshooting.md).
 
 ## Visual docs (interactive)
 
@@ -97,6 +128,9 @@ Full docs live in [`docs/`](docs/README.md):
 | 09 | Development guide |
 | 10 | Cloud deployment (K8s + AWS) |
 | 11 | Interview prep |
+| 12 | Troubleshooting (every known error + fix) |
+| 13 | Complete local setup (clone → tested) |
+| 14 | Complete production setup (AWS, step by step) |
 
 ## Cost Warning (AWS)
 

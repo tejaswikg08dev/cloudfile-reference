@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from .config import get_settings
 from .database import Base, engine
+from .db_init import create_all_safe
 from .exceptions import install_exception_handlers
 from .logging_config import configure_logging, get_logger
 from .router import router
@@ -18,8 +19,7 @@ logger = get_logger("notification.main")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    await create_all_safe(engine, Base.metadata)
     logger.info("notification_service_started")
     yield
     await engine.dispose()

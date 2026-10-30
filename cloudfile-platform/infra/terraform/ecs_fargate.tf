@@ -39,9 +39,14 @@ locals {
   }
 
   # Per-service environment. DB URLs use the RDS endpoint.
+  # NOTE: RDS provisions exactly ONE database (var.db_name). All services share
+  # that single database — their table names (users, files) never collide — so
+  # we avoid the "database cloudfile_auth does not exist" failure. (Locally,
+  # Docker Compose uses two databases; on AWS we keep it to one for simplicity
+  # and free-tier friendliness.)
   service_env = {
     auth = [
-      { name = "AUTH_DATABASE_URL", value = "postgresql+asyncpg://${var.db_username}:${var.db_password}@${aws_db_instance.main.address}:5432/cloudfile_auth" },
+      { name = "AUTH_DATABASE_URL", value = "postgresql+asyncpg://${var.db_username}:${var.db_password}@${aws_db_instance.main.address}:5432/${var.db_name}" },
       { name = "JWT_SECRET_KEY", value = var.jwt_secret_key },
     ]
     files = [
