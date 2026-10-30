@@ -1,7 +1,7 @@
 """HTTP routes for the files service."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 
 from shared.auth_utils import TokenData
 
@@ -75,5 +75,9 @@ async def delete_file(
     file_id: str,
     token: TokenData = Depends(get_current_token),
     service: FileService = Depends(get_file_service),
-) -> None:
+) -> Response:
+    # FastAPI requires a 204 response to carry no body. Returning an explicit
+    # empty Response satisfies this (a `-> None` route still declares a body
+    # model, which FastAPI 0.115+ rejects at import time).
     await service.delete_file(file_id, token.user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
