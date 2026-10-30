@@ -20,6 +20,7 @@ Read in order for a guided learning path, or jump to what you need.
 | 12 | [12-troubleshooting.md](12-troubleshooting.md) | Every startup issue, root cause, and the fix applied |
 | 13 | [13-local-setup-complete.md](13-local-setup-complete.md) | Full teaching walkthrough: clone → running → tested |
 | 14 | [14-production-setup-complete.md](14-production-setup-complete.md) | Full AWS deploy: provision → push → verify → destroy |
+| 15 | [15-testing-guide.md](15-testing-guide.md) | Postman + e2e script + pytest, all three ways to test |
 
 Also see:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — concise architecture reference

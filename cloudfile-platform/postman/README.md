@@ -7,11 +7,13 @@ Test the entire CloudFile system from Postman.
 - `CloudFile.postman_collection.json` — all requests for auth, files, search,
   and the notification service.
 - `CloudFile.local.postman_environment.json` — local URLs + variables.
+- `CloudFile.production.postman_environment.json` — edit with your deployed URLs.
 
 ## Import
 
-1. Open Postman → **Import** → select both JSON files.
-2. Top-right environment dropdown → choose **CloudFile — Local**.
+1. Open Postman → **Import** → select the collection + the environment(s).
+2. Top-right environment dropdown → choose **CloudFile — Local** (or
+   **CloudFile — Production** after editing its URLs).
 
 ## Run the full flow (in order)
 
