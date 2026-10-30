@@ -40,3 +40,14 @@ variable "enable_eks" {
   type        = bool
   default     = false
 }
+
+variable "service_desired_count" {
+  description = <<-EOT
+    Number of tasks per ECS service.
+    Use 0 for the FIRST apply (creates infra + ECR without trying to run
+    containers before images exist). After pushing images, apply again with
+    1 to start the services.
+  EOT
+  type    = number
+  default = 0
+}

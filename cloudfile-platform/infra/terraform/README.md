@@ -19,14 +19,25 @@
 
 ```bash
 cd infra/terraform
+export TF_VAR_db_password="$(openssl rand -hex 16)"
+export TF_VAR_jwt_secret_key="$(openssl rand -hex 32)"
+
 terraform init
-terraform plan  -var="db_password=$(openssl rand -hex 16)"
-terraform apply -var="db_password=..."
+terraform apply                              # phase 1: infra + ECR, services at 0
+
+# ... push images to ECR (see docs/19-aws-deploy-runbook.md Phase 2) ...
+
+terraform apply -var="service_desired_count=1"   # phase 2: start the services
 
 # ... test ...
 
-terraform destroy -var="db_password=..."   # ALWAYS do this when finished
+terraform destroy                            # ALWAYS do this when finished
 ```
+
+> Two-phase apply avoids a chicken-and-egg problem: ECS can't pull images that
+> don't exist yet. First apply creates ECR with services at 0 tasks; after you
+> push images, the second apply scales them to 1.
+> Full baby-steps guide: `docs/19-aws-deploy-runbook.md`.
 
 ## Free-tier guidance
 

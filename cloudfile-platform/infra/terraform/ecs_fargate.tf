@@ -98,8 +98,10 @@ resource "aws_ecs_service" "service" {
   name            = "${var.project_name}-${each.key}"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.service[each.key].arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
+  # 0 on the first apply (images don't exist yet), then set to 1 after pushing
+  # images so tasks don't crash-loop trying to pull a missing image.
+  desired_count = var.service_desired_count
+  launch_type   = "FARGATE"
 
   network_configuration {
     subnets          = aws_subnet.public[*].id

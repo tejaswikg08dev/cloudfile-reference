@@ -24,6 +24,7 @@ Read in order for a guided learning path, or jump to what you need.
 | 16 | [16-manual-testing-walkthrough.md](16-manual-testing-walkthrough.md) | Beginner-friendly: what it is + hand-test every feature via Swagger |
 | 17 | [17-test-images-and-email.md](17-test-images-and-email.md) | Upload a real image + receive a real email (Mailtrap) |
 | 18 | [18-kubernetes-run-guide.md](18-kubernetes-run-guide.md) | Run on Kubernetes (minikube) step by step + EKS notes |
+| 19 | [19-aws-deploy-runbook.md](19-aws-deploy-runbook.md) | Baby-steps AWS deploy (Terraform + CLI) → test → destroy |
 
 Also see:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — concise architecture reference
