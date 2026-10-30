@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CloudFile — Visual Documentation</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links">
+    <a href="01-system-map.html">System</a>
+    <a href="03-upload-journey.html">Upload</a>
+    <a href="07-local-deployment.html">Local</a>
+    <a href="08-cloud-deployment.html">Cloud</a>
+  </div>
+</nav>
+
+<div class="container">
+  <section class="hero">
+    <div class="badge fade">✨ Interactive Visual Docs — "Follow the file"</div>
+    <h1 class="fade d1">A Microservices<br><span class="gradient">File Platform</span></h1>
+    <p class="fade d2">
+      Watch how CloudFile works — upload a file and follow it through S3, a
+      serverless Lambda, search, and notifications. Explore local and cloud
+      deployment, the monorepo + separate-repo split, and every technology used.
+      All animated, offline, zero dependencies.
+    </p>
+    <div class="btn-row fade d3">
+      <a class="btn btn-primary" href="03-upload-journey.html">▶ Watch the Upload Journey</a>
+      <a class="btn" href="01-system-map.html">Explore the System Map</a>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="v" data-count="4">0</div><div class="l">Microservices</div></div>
+    <div class="stat"><div class="v" data-count="2">0</div><div class="l">Repositories</div></div>
+    <div class="stat"><div class="v" data-count="15" data-suffix="+">0</div><div class="l">API Endpoints</div></div>
+    <div class="stat"><div class="v" data-count="21">0</div><div class="l">Automated Tests</div></div>
+    <div class="stat"><div class="v" data-count="1">0</div><div class="l">Lambda</div></div>
+    <div class="stat"><div class="v" data-count="11">0</div><div class="l">Visual Pages</div></div>
+  </div>
+
+  <div class="marquee">
+    <div class="marquee-inner">
+      <span class="t">Python</span><span class="t">FastAPI</span><span class="t">Pydantic</span>
+      <span class="t">SQLAlchemy</span><span class="t">PostgreSQL</span><span class="t">Alembic</span>
+      <span class="t">JWT</span><span class="t">S3</span><span class="t">Lambda</span>
+      <span class="t">Docker</span><span class="t">Kubernetes</span><span class="t">Terraform</span>
+      <span class="t">ECS Fargate</span><span class="t">GitHub Actions</span><span class="t">LocalStack</span>
+      <!-- duplicate for seamless loop -->
+      <span class="t">Python</span><span class="t">FastAPI</span><span class="t">Pydantic</span>
+      <span class="t">SQLAlchemy</span><span class="t">PostgreSQL</span><span class="t">Alembic</span>
+      <span class="t">JWT</span><span class="t">S3</span><span class="t">Lambda</span>
+      <span class="t">Docker</span><span class="t">Kubernetes</span><span class="t">Terraform</span>
+      <span class="t">ECS Fargate</span><span class="t">GitHub Actions</span><span class="t">LocalStack</span>
+    </div>
+  </div>
+
+  <section class="section">
+    <h2>Visual Guides</h2>
+    <p class="sub">Each page is interactive — press Play, Step through, or Reset.</p>
+    <div class="grid">
+      <a class="card" href="01-system-map.html"><div class="num">01</div><div class="icon">🗺️</div><h3>System Map</h3><p>The whole platform; click a service to see its connections.</p><div class="tags"><span class="tag">architecture</span></div></a>
+      <a class="card" href="02-request-lifecycle.html"><div class="num">02</div><div class="icon">🔁</div><h3>Request Lifecycle</h3><p>router → service → repository → DB, layer by layer.</p><div class="tags"><span class="tag">layered design</span></div></a>
+      <a class="card" href="03-upload-journey.html"><div class="num">03</div><div class="icon">📤</div><h3>Upload Journey</h3><p>Initiate → S3 → confirm → notify → Lambda. The star flow.</p><div class="tags"><span class="tag">S3</span><span class="tag">Lambda</span></div></a>
+      <a class="card" href="04-auth-jwt.html"><div class="num">04</div><div class="icon">🔐</div><h3>Auth &amp; JWT</h3><p>Login and how every service verifies a token locally.</p><div class="tags"><span class="tag">security</span></div></a>
+      <a class="card" href="05-search-pagination.html"><div class="num">05</div><div class="icon">🔎</div><h3>Search &amp; Pagination</h3><p>Filter, count, page math, results — with a live page slider.</p><div class="tags"><span class="tag">querying</span></div></a>
+      <a class="card" href="06-monorepo-vs-polyrepo.html"><div class="num">06</div><div class="icon">🗂️</div><h3>Monorepo vs Polyrepo</h3><p>Two repos, one system; watch a call cross the boundary.</p><div class="tags"><span class="tag">patterns</span></div></a>
+      <a class="card" href="07-local-deployment.html"><div class="num">07</div><div class="icon">🐳</div><h3>Local Deployment</h3><p>Docker Compose boot sequence, health checks, port map.</p><div class="tags"><span class="tag">Docker</span></div></a>
+      <a class="card" href="08-cloud-deployment.html"><div class="num">08</div><div class="icon">☁️</div><h3>Cloud Deployment</h3><p>AWS topology + CI/CD pipeline animation. Destroy reminder!</p><div class="tags"><span class="tag">AWS</span><span class="tag">CI/CD</span></div></a>
+      <a class="card" href="09-kubernetes.html"><div class="num">09</div><div class="icon">☸️</div><h3>Kubernetes View</h3><p>Pods, Services, Ingress, HPA — watch a pod scale up.</p><div class="tags"><span class="tag">K8s</span></div></a>
+      <a class="card" href="10-data-model.html"><div class="num">10</div><div class="icon">🗃️</div><h3>Data Model</h3><p>Three tables, who owns and who reads each.</p><div class="tags"><span class="tag">database</span></div></a>
+      <a class="card" href="11-tech-skills.html"><div class="num">11</div><div class="icon">🧰</div><h3>Tech &amp; Skills</h3><p>Every technology; click one for where + why + interview line.</p><div class="tags"><span class="tag">skills</span></div></a>
+    </div>
+  </section>
+
+  <div class="footer">
+    CloudFile Visual Docs · open any <code>.html</code> directly in a browser · no internet required
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

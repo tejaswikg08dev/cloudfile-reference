@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Search & Pagination — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="06-monorepo-vs-polyrepo.html">Repos →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🔎 Page 05</div>
+    <h2 class="fade d1">Search &amp; Pagination</h2>
+    <p class="sub fade d2">Move the sliders to see how <code>page</code> and <code>page_size</code> turn into a SQL <code>OFFSET/LIMIT</code> and page math.</p>
+
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center">
+        <div>
+          <label class="svg-sub">total results: <b id="totalv">47</b></label>
+          <input id="total" type="range" min="0" max="120" value="47" style="width:100%"/>
+          <label class="svg-sub">page: <b id="pagev">1</b></label>
+          <input id="page" type="range" min="1" max="10" value="1" style="width:100%"/>
+          <label class="svg-sub">page_size: <b id="sizev">20</b></label>
+          <input id="size" type="range" min="5" max="50" step="5" value="20" style="width:100%"/>
+        </div>
+        <div class="code" id="out"></div>
+      </div>
+    </div>
+
+    <h3>How the repository builds the query</h3>
+    <div class="code"><span class="k">SELECT</span> * <span class="k">FROM</span> files
+<span class="k">WHERE</span> owner_id = :me
+  <span class="k">AND</span> filename <span class="k">ILIKE</span> '%:name%'      <span class="c">-- optional</span>
+  <span class="k">AND</span> content_type = :type        <span class="c">-- optional</span>
+<span class="k">ORDER BY</span> created_at <span class="k">DESC</span>
+<span class="k">OFFSET</span> :offset <span class="k">LIMIT</span> :limit;      <span class="c">-- pagination</span>
+
+<span class="c"># A separate COUNT(*) gives `total`, used to compute total_pages.</span></div>
+
+    <div class="note"><b>Security:</b> every query is scoped to <code>owner_id = me</code> (from the JWT), so a user can only ever see their own files.</div>
+
+    <div class="btn-row" style="justify-content:flex-start"><a class="btn" href="index.html">← All guides</a><a class="btn btn-primary" href="06-monorepo-vs-polyrepo.html">Next: Repos →</a></div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Search &amp; Pagination</div>
+</div>
+<script>
+function render(){
+  const total=+document.getElementById('total').value;
+  const size=+document.getElementById('size').value;
+  let page=+document.getElementById('page').value;
+  const totalPages = total ? Math.ceil(total/size) : 0;
+  if(page>Math.max(1,totalPages)) { page=Math.max(1,totalPages); document.getElementById('page').value=page; }
+  const offset=(page-1)*size;
+  const shown = Math.max(0, Math.min(size, total-offset));
+  document.getElementById('totalv').textContent=total;
+  document.getElementById('pagev').textContent=page;
+  document.getElementById('sizev').textContent=size;
+  document.getElementById('out').innerHTML =
+    '<span class="c"># request</span>\n' +
+    'GET /api/v1/search?page='+page+'&page_size='+size+'\n\n' +
+    '<span class="c"># response</span>\n' +
+    '{\n  "items": [ '+shown+' items ],\n' +
+    '  "total": '+total+',\n' +
+    '  "page": '+page+',\n' +
+    '  "page_size": '+size+',\n' +
+    '  "total_pages": '+totalPages+'\n}\n\n' +
+    '<span class="c"># SQL</span>\nOFFSET '+offset+' LIMIT '+size;
+}
+['total','page','size'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+render();
+</script>
+</body>
+</html>

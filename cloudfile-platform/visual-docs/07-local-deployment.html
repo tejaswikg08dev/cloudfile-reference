@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Local Deployment — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="08-cloud-deployment.html">Cloud →</a>
+  </div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🐳 Page 07</div>
+    <h2 class="fade d1">Local Deployment with Docker Compose</h2>
+    <p class="sub fade d2">Press <b>Play</b> to watch the whole stack boot — containers start, health checks turn green, and the two repos connect.</p>
+
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--db)"></span>Postgres</span>
+      <span class="item"><span class="swatch" style="background:var(--s3)"></span>LocalStack (S3)</span>
+      <span class="item"><span class="swatch" style="background:var(--auth)"></span>auth</span>
+      <span class="item"><span class="swatch" style="background:var(--files)"></span>files</span>
+      <span class="item"><span class="swatch" style="background:var(--search)"></span>search</span>
+      <span class="item"><span class="swatch" style="background:var(--notify)"></span>notification (separate repo)</span>
+    </div>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 440" role="img" aria-label="Local deployment diagram">
+        <!-- Monorepo project box -->
+        <rect x="20" y="20" width="620" height="400" rx="16" fill="none" stroke="#243150" stroke-dasharray="4 6"/>
+        <text x="36" y="46" class="svg-sub">docker compose — cloudfile-platform</text>
+
+        <!-- Separate repo project box -->
+        <rect x="670" y="20" width="290" height="400" rx="16" fill="none" stroke="#5a2a46" stroke-dasharray="4 6"/>
+        <text x="686" y="46" class="svg-sub">docker compose — notification-service</text>
+
+        <!-- Infra row -->
+        <g id="n-pg" class="node" style="color:var(--db)" data-cx="150" data-cy="120">
+          <rect x="60" y="80" width="180" height="70" rx="12" fill="#1b2744" stroke="var(--db)"/>
+          <text x="150" y="110" text-anchor="middle" class="svg-label">PostgreSQL</text>
+          <text x="150" y="130" text-anchor="middle" class="svg-sub">:5432 · 2 DBs</text>
+        </g>
+        <g id="n-ls" class="node" style="color:var(--s3)" data-cx="420" data-cy="120">
+          <rect x="330" y="80" width="180" height="70" rx="12" fill="#1b2744" stroke="var(--s3)"/>
+          <text x="420" y="110" text-anchor="middle" class="svg-label">LocalStack</text>
+          <text x="420" y="130" text-anchor="middle" class="svg-sub">S3 · :4566</text>
+        </g>
+
+        <!-- Services row -->
+        <g id="n-auth" class="node" style="color:var(--auth)" data-cx="130" data-cy="300">
+          <rect x="60" y="250" width="150" height="90" rx="12" fill="#1b2744" stroke="var(--auth)"/>
+          <text x="135" y="285" text-anchor="middle" class="svg-label">auth</text>
+          <text x="135" y="305" text-anchor="middle" class="svg-sub">:8001</text>
+          <circle id="h-auth" cx="195" cy="265" r="6" fill="#334155"/>
+        </g>
+        <g id="n-files" class="node" style="color:var(--files)" data-cx="320" data-cy="300">
+          <rect x="245" y="250" width="150" height="90" rx="12" fill="#1b2744" stroke="var(--files)"/>
+          <text x="320" y="285" text-anchor="middle" class="svg-label">files</text>
+          <text x="320" y="305" text-anchor="middle" class="svg-sub">:8002</text>
+          <circle id="h-files" cx="380" cy="265" r="6" fill="#334155"/>
+        </g>
+        <g id="n-search" class="node" style="color:var(--search)" data-cx="510" data-cy="300">
+          <rect x="435" y="250" width="150" height="90" rx="12" fill="#1b2744" stroke="var(--search)"/>
+          <text x="510" y="285" text-anchor="middle" class="svg-label">search</text>
+          <text x="510" y="305" text-anchor="middle" class="svg-sub">:8003</text>
+          <circle id="h-search" cx="570" cy="265" r="6" fill="#334155"/>
+        </g>
+
+        <!-- Notification service -->
+        <g id="n-notify" class="node" style="color:var(--notify)" data-cx="815" data-cy="300">
+          <rect x="710" y="250" width="210" height="90" rx="12" fill="#2a1726" stroke="var(--notify)"/>
+          <text x="815" y="285" text-anchor="middle" class="svg-label">notification</text>
+          <text x="815" y="305" text-anchor="middle" class="svg-sub">:8004 · own DB</text>
+          <circle id="h-notify" cx="900" cy="265" r="6" fill="#334155"/>
+        </g>
+
+        <!-- edges -->
+        <line id="e-auth-pg"  class="edge" x1="135" y1="250" x2="140" y2="150" stroke="var(--auth)" stroke-width="2"/>
+        <line id="e-files-pg" class="edge" x1="320" y1="250" x2="180" y2="150" stroke="var(--files)" stroke-width="2"/>
+        <line id="e-files-ls" class="edge" x1="340" y1="250" x2="410" y2="150" stroke="var(--files)" stroke-width="2"/>
+        <line id="e-search-pg" class="edge" x1="500" y1="250" x2="210" y2="150" stroke="var(--search)" stroke-width="2"/>
+        <line id="e-files-notify" class="edge" x1="395" y1="300" x2="710" y2="300" stroke="var(--notify)" stroke-width="2"/>
+        <text x="520" y="292" class="svg-sub">host.docker.internal:8004</text>
+      </svg>
+
+      <div class="player">
+        <button class="btn btn-primary" id="play">▶ Play</button>
+        <button class="btn" id="step">Step</button>
+        <button class="btn" id="reset">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <h3 style="margin-top:32px">The commands</h3>
+    <div class="code">
+<span class="c"># Terminal 1 — core services (monorepo)</span>
+cd cloudfile-platform
+cp .env.example .env
+docker compose up --build        <span class="c"># auth:8001 files:8002 search:8003 +pg +localstack</span>
+
+<span class="c"># Terminal 2 — notification service (separate repo)</span>
+cd notification-service
+cp .env.example .env
+docker compose up --build        <span class="c"># notification:8004</span>
+
+<span class="c"># Terminal 3 — end-to-end demo</span>
+cd cloudfile-platform
+bash scripts/e2e-demo.sh
+    </div>
+
+    <div class="note">
+      <b>Why two Compose projects?</b> The monorepo and the notification service
+      are separate repos, so each has its own <code>docker-compose.yml</code>.
+      The files service reaches notifications via
+      <code>host.docker.internal:8004</code> — the notification container
+      publishes port 8004 on your host, so the bridge works across projects.
+    </div>
+
+    <div class="btn-row" style="justify-content:flex-start">
+      <a class="btn" href="index.html">← All guides</a>
+      <a class="btn btn-primary" href="08-cloud-deployment.html">Next: Cloud Deployment →</a>
+    </div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Local Deployment</div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+function green(id){ const el=document.getElementById(id); if(el) el.setAttribute('fill','#22C55E'); }
+function grey(){ ['h-auth','h-files','h-search','h-notify'].forEach(id=>{const e=document.getElementById(id); if(e)e.setAttribute('fill','#334155');}); }
+
+const steps = [
+  { caption: "Postgres starts first. Its init script creates two databases: <code>cloudfile_auth</code> and <code>cloudfile_files</code>. A healthcheck waits for <code>pg_isready</code>.", nodes:['n-pg'] },
+  { caption: "LocalStack starts, emulating AWS S3 on port 4566 — so uploads work locally with no real AWS account.", nodes:['n-pg','n-ls'] },
+  { caption: "auth starts once Postgres is healthy, connects to <code>cloudfile_auth</code>, and exposes port 8001.", nodes:['n-auth','e-auth-pg'], after:()=>green('h-auth') },
+  { caption: "files starts, connects to <code>cloudfile_files</code> and to LocalStack S3, and exposes 8002.", nodes:['n-files','e-files-pg','e-files-ls'], after:()=>green('h-files') },
+  { caption: "search starts, reads the same <code>cloudfile_files</code> database (read model), and exposes 8003.", nodes:['n-search','e-search-pg'], after:()=>green('h-search') },
+  { caption: "In a second terminal, the notification service (separate repo) boots with its own Postgres and exposes 8004.", nodes:['n-notify'], after:()=>green('h-notify') },
+  { caption: "All health checks are green ✅. The files service can now call the notification service across the two Compose projects via host.docker.internal:8004.", nodes:['n-files','n-notify','e-files-notify'], after:()=>{green('h-auth');green('h-files');green('h-search');green('h-notify');} },
+];
+
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar' });
+// patch render to run `after` hooks + reset health dots on reset
+const origStep = player.step.bind(player);
+player.step = function(){ origStep(); const s=this.steps[this.i]; if(s && s.after) s.after(); };
+const origReset = player.reset.bind(player);
+player.reset = function(){ grey(); origReset(); };
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+</script>
+</body>
+</html>

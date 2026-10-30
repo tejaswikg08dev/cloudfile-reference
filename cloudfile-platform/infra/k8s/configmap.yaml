@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudfile-config
+  namespace: cloudfile
+data:
+  LOG_LEVEL: "INFO"
+  JWT_ALGORITHM: "HS256"
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+  AWS_REGION: "us-east-1"
+  S3_BUCKET_NAME: "cloudfile-uploads"
+  PRESIGNED_URL_EXPIRE_SECONDS: "3600"
+  # For local minikube, point services at the in-cluster Postgres.
+  AUTH_DATABASE_URL: "postgresql+asyncpg://cloudfile:cloudfile@postgres:5432/cloudfile_auth"
+  FILES_DATABASE_URL: "postgresql+asyncpg://cloudfile:cloudfile@postgres:5432/cloudfile_files"
+  SEARCH_DATABASE_URL: "postgresql+asyncpg://cloudfile:cloudfile@postgres:5432/cloudfile_files"
+  NOTIFICATION_SERVICE_URL: "http://notification-service.cloudfile.svc.cluster.local:8004"

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auth & JWT — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="05-search-pagination.html">Search →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🔐 Page 04</div>
+    <h2 class="fade d1">Authentication &amp; JWT</h2>
+    <p class="sub fade d2">How a token is issued and how every service verifies it — locally, with no round-trip to auth.</p>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 260" role="img" aria-label="Auth and JWT">
+        <g id="n-client" class="node" style="color:var(--text)"><rect x="30" y="100" width="130" height="60" rx="12" fill="#1b2744" stroke="#64748b"/><text x="95" y="135" text-anchor="middle" class="svg-label">Client</text></g>
+        <g id="n-auth" class="node" style="color:var(--auth)"><rect x="230" y="100" width="150" height="60" rx="12" fill="#1b2744" stroke="var(--auth)"/><text x="305" y="128" text-anchor="middle" class="svg-label">auth</text><text x="305" y="146" text-anchor="middle" class="svg-sub">bcrypt + sign</text></g>
+        <g id="n-files" class="node" style="color:var(--files)"><rect x="620" y="40" width="150" height="56" rx="12" fill="#1b2744" stroke="var(--files)"/><text x="695" y="73" text-anchor="middle" class="svg-sub">files · verify</text></g>
+        <g id="n-search" class="node" style="color:var(--search)"><rect x="620" y="110" width="150" height="56" rx="12" fill="#1b2744" stroke="var(--search)"/><text x="695" y="143" text-anchor="middle" class="svg-sub">search · verify</text></g>
+        <g id="n-notify" class="node" style="color:var(--notify)"><rect x="620" y="180" width="150" height="56" rx="12" fill="#2a1726" stroke="var(--notify)"/><text x="695" y="213" text-anchor="middle" class="svg-sub">notify · verify</text></g>
+        <g id="n-secret" class="node" style="color:var(--amber)"><rect x="820" y="110" width="140" height="56" rx="12" fill="#2a2411" stroke="var(--amber)"/><text x="890" y="137" text-anchor="middle" class="svg-label">JWT secret</text><text x="890" y="153" text-anchor="middle" class="svg-sub">shared</text></g>
+
+        <line id="e1" class="edge" x1="160" y1="130" x2="230" y2="130" stroke="var(--auth)" stroke-width="2"/>
+        <line id="e2" class="edge" x1="380" y1="130" x2="160" y2="130" stroke="var(--auth)" stroke-width="2"/>
+        <line id="e3" class="edge" x1="160" y1="120" x2="620" y2="68" stroke="var(--files)" stroke-width="2"/>
+        <line id="e4" class="edge" x1="160" y1="130" x2="620" y2="138" stroke="var(--search)" stroke-width="2"/>
+        <line id="e5" class="edge" x1="160" y1="140" x2="620" y2="208" stroke="var(--notify)" stroke-width="2"/>
+        <line id="e6" class="edge" x1="770" y1="138" x2="820" y2="138" stroke="var(--amber)" stroke-width="2"/>
+      </svg>
+      <div class="player"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="step">Step</button><button class="btn" id="reset">Reset</button></div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <h3>A JWT has three parts</h3>
+    <div class="code"><span class="k">header</span>.<span class="s">payload</span>.<span class="c">signature</span>
+
+<span class="c"># header  </span>{ "alg": "HS256", "typ": "JWT" }
+<span class="c"># payload </span>{ "sub": "&lt;user_id&gt;", "email": "me@example.com", "exp": 1699999999 }
+<span class="c"># signature = HMAC_SHA256(header.payload, JWT_SECRET_KEY)</span>
+    </div>
+
+    <div class="note"><b>Why verify locally?</b> Every service shares the same <code>JWT_SECRET_KEY</code>, so it can validate the signature and expiry itself — no network call to auth on every request. Trade-off: rotating the secret means redeploying all services together.</div>
+
+    <div class="btn-row" style="justify-content:flex-start"><a class="btn" href="index.html">← All guides</a><a class="btn btn-primary" href="05-search-pagination.html">Next: Search →</a></div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Auth &amp; JWT</div>
+</div>
+<script src="assets/app.js"></script>
+<script>
+const steps = [
+  { caption:"Client sends email + password to <code>POST /auth/login</code>.", nodes:['n-client','n-auth','e1'] },
+  { caption:"auth checks the password with <b>bcrypt</b>, then signs a JWT with the shared secret and returns it.", nodes:['n-auth','n-secret','e2'] },
+  { caption:"The client attaches <code>Authorization: Bearer &lt;token&gt;</code> to later requests.", nodes:['n-client'] },
+  { caption:"<b>files</b> verifies the token locally using the shared secret — no call back to auth.", nodes:['n-files','n-secret','e3','e6'] },
+  { caption:"<b>search</b> and <b>notification</b> do the same. One secret, one token format, everywhere.", nodes:['n-search','n-notify','n-secret','e4','e5','e6'] },
+];
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar' });
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+</script>
+</body>
+</html>

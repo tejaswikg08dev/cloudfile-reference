@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tech & Skills — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="10-data-model.html">← Data</a><a href="index.html">Home</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🧰 Page 11</div>
+    <h2 class="fade d1">Tech &amp; Skills</h2>
+    <p class="sub fade d2">Click any technology to see where it's used, why, and a ready-to-say interview line.</p>
+
+    <div class="grid" id="chips"></div>
+
+    <div class="panel" id="detail" style="display:none">
+      <h3 id="d-name"></h3>
+      <p id="d-where"></p>
+      <div class="note" id="d-line"></div>
+    </div>
+
+    <div class="btn-row" style="justify-content:flex-start"><a class="btn" href="index.html">← All guides</a></div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Tech &amp; Skills</div>
+</div>
+
+<script>
+const tech = [
+  ["FastAPI","🚀","all four services","“I used FastAPI for async endpoints, dependency injection, and auto-generated OpenAPI docs.”"],
+  ["Pydantic v2","✅","schemas + settings","“Request/response validation and 12-factor settings come from Pydantic models.”"],
+  ["SQLAlchemy 2.0","🗄️","repositories","“Async ORM with AsyncSession and select() for non-blocking DB access.”"],
+  ["Alembic","📜","auth, files, notification","“Versioned schema migrations with an async env.py.”"],
+  ["PostgreSQL","🐘","all data","“Relational metadata with indexing and ILIKE search.”"],
+  ["JWT","🔐","auth + every verify","“HS256 tokens signed by auth and verified locally everywhere via a shared secret.”"],
+  ["bcrypt","🧂","auth","“Salted password hashing — never store plaintext.”"],
+  ["S3","🪣","files + processor","“Direct-to-S3 uploads with presigned URLs keep services stateless.”"],
+  ["Lambda","⚡","processor","“Event-driven thumbnails/metadata — scales to zero when idle.”"],
+  ["boto3","📦","files, processor, SES","“AWS SDK, called from async code via run_in_threadpool.”"],
+  ["httpx","🔗","files → notification","“Async HTTP for inter-service calls, forwarding the JWT.”"],
+  ["Docker","🐳","every service","“Multi-stage builds, non-root user, slim images.”"],
+  ["Docker Compose","🧩","local dev","“One command spins up the whole stack with healthchecks.”"],
+  ["LocalStack","🧪","local S3","“Emulates AWS locally so uploads work with no real account.”"],
+  ["Kubernetes","☸️","infra/k8s","“Deployments, Services, Ingress, HPA, ConfigMaps, Secrets, probes.”"],
+  ["Terraform","🏗️","infra/terraform","“Reproducible AWS infra — VPC, ECR, S3, Lambda, RDS, ECS.”"],
+  ["GitHub Actions","🔁","both repos","“Matrixed test → build → ECR → ECS deploy.”"],
+  ["ECS Fargate","🚢","AWS deploy","“Serverless containers, no control-plane fee — cost control.”"],
+  ["pytest","🧷","tests/","“Async API tests with SQLite + fakes, no external deps.”"],
+  ["ruff + mypy","🧹","CI","“Fast linting and static typing on every PR.”"],
+];
+const chips=document.getElementById('chips');
+tech.forEach(([name,icon,where,line])=>{
+  const a=document.createElement('a');
+  a.className='card'; a.style.cursor='pointer';
+  a.innerHTML='<div class="icon">'+icon+'</div><h3>'+name+'</h3><p>'+where+'</p>';
+  a.onclick=()=>{
+    document.getElementById('detail').style.display='block';
+    document.getElementById('d-name').textContent=icon+' '+name;
+    document.getElementById('d-where').innerHTML='<b>Where:</b> '+where;
+    document.getElementById('d-line').innerHTML='<b>Say it:</b> '+line;
+    document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+  chips.appendChild(a);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Standalone local stack for the notification service (its own repo).
+
+services:
+  notify-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: notify
+      POSTGRES_PASSWORD: notify
+      POSTGRES_DB: notifications
+    ports:
+      - "5433:5432"
+    volumes:
+      - notifypg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notify"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  notification:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NOTIFICATION_DATABASE_URL: postgresql+asyncpg://notify:notify@notify-db:5432/notifications
+      JWT_SECRET_KEY: local-dev-secret-change-me-0123456789
+      JWT_ALGORITHM: HS256
+      NOTIFICATION_PROVIDER: console
+      LOG_LEVEL: INFO
+    ports:
+      - "8004:8004"
+    depends_on:
+      notify-db:
+        condition: service_healthy
+
+volumes:
+  notifypg:

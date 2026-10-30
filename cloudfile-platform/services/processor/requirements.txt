@@ -1,0 +1,4 @@
+# Pillow for image thumbnails; psycopg2 for DB updates.
+# boto3 is provided by the Lambda runtime, so it is not pinned here.
+Pillow==11.0.0
+psycopg2-binary==2.9.10

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Request Lifecycle — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="03-upload-journey.html">Upload →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🔁 Page 02</div>
+    <h2 class="fade d1">A Request's Lifecycle</h2>
+    <p class="sub fade d2">Every service follows the same clean layering. Watch a request flow down and a response flow back.</p>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 300" role="img" aria-label="Request lifecycle">
+        <g id="n-router" class="node" style="color:var(--files)"><rect x="40" y="120" width="150" height="70" rx="12" fill="#1b2744" stroke="var(--files)"/><text x="115" y="150" text-anchor="middle" class="svg-label">router.py</text><text x="115" y="170" text-anchor="middle" class="svg-sub">HTTP / FastAPI</text></g>
+        <g id="n-dep" class="node" style="color:var(--auth)"><rect x="230" y="40" width="150" height="56" rx="12" fill="#1b2744" stroke="var(--auth)"/><text x="305" y="73" text-anchor="middle" class="svg-sub">Depends: JWT</text></g>
+        <g id="n-service" class="node" style="color:var(--search)"><rect x="230" y="120" width="150" height="70" rx="12" fill="#1b2744" stroke="var(--search)"/><text x="305" y="150" text-anchor="middle" class="svg-label">service.py</text><text x="305" y="170" text-anchor="middle" class="svg-sub">business logic</text></g>
+        <g id="n-repo" class="node" style="color:var(--processor)"><rect x="420" y="120" width="150" height="70" rx="12" fill="#2a2411" stroke="var(--processor)"/><text x="495" y="150" text-anchor="middle" class="svg-label">repository.py</text><text x="495" y="170" text-anchor="middle" class="svg-sub">SQLAlchemy</text></g>
+        <g id="n-db" class="node" style="color:var(--db)"><rect x="610" y="120" width="150" height="70" rx="12" fill="#1b2744" stroke="var(--db)"/><text x="685" y="155" text-anchor="middle" class="svg-label">PostgreSQL</text></g>
+        <g id="n-schema" class="node" style="color:var(--notify)"><rect x="800" y="120" width="140" height="70" rx="12" fill="#2a1726" stroke="var(--notify)"/><text x="870" y="150" text-anchor="middle" class="svg-label">schema</text><text x="870" y="170" text-anchor="middle" class="svg-sub">Pydantic out</text></g>
+
+        <line id="e1" class="edge" x1="190" y1="150" x2="230" y2="150" stroke="var(--search)" stroke-width="2"/>
+        <line id="e-dep" class="edge" x1="190" y1="140" x2="230" y2="80" stroke="var(--auth)" stroke-width="2"/>
+        <line id="e2" class="edge" x1="380" y1="150" x2="420" y2="150" stroke="var(--processor)" stroke-width="2"/>
+        <line id="e3" class="edge" x1="570" y1="150" x2="610" y2="150" stroke="var(--db)" stroke-width="2"/>
+        <line id="e4" class="edge" x1="760" y1="150" x2="800" y2="150" stroke="var(--notify)" stroke-width="2"/>
+      </svg>
+      <div class="player"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="step">Step</button><button class="btn" id="reset">Reset</button></div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <div class="note"><b>Why layer it?</b> Each layer has one job. Routers never touch SQL; services never touch HTTP; repositories never contain business rules. This makes the code testable (swap the DB for SQLite in tests) and easy to reason about.</div>
+
+    <div class="btn-row" style="justify-content:flex-start"><a class="btn" href="index.html">← All guides</a><a class="btn btn-primary" href="03-upload-journey.html">Next: Upload →</a></div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Request Lifecycle</div>
+</div>
+<script src="assets/app.js"></script>
+<script>
+const steps = [
+  { caption:"A request hits <code>router.py</code> — the only layer that knows about HTTP.", nodes:['n-router'] },
+  { caption:"A <code>Depends</code> verifies the JWT before the handler runs. Invalid token → 401, short-circuit.", nodes:['n-router','n-dep','e-dep'] },
+  { caption:"The router calls <code>service.py</code>, which holds the business logic (no HTTP, no SQL specifics).", nodes:['n-service','e1'] },
+  { caption:"The service calls <code>repository.py</code> for data access — pure SQLAlchemy queries.", nodes:['n-repo','e2'] },
+  { caption:"The repository talks to <b>PostgreSQL</b> and returns ORM models.", nodes:['n-db','e3'] },
+  { caption:"The router serializes the result with a Pydantic <b>schema</b> and returns JSON. Errors become a consistent envelope.", nodes:['n-schema','e4'] },
+];
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar' });
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+</script>
+</body>
+</html>

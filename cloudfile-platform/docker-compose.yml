@@ -1,0 +1,93 @@
+# Local development stack for the CloudFile monorepo.
+# Build context is the repo root so each service image can include `shared/`.
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: cloudfile
+      POSTGRES_PASSWORD: cloudfile
+      POSTGRES_MULTIPLE_DATABASES: cloudfile_auth,cloudfile_files
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudfile"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:3.8
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: us-east-1
+    ports:
+      - "4566:4566"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    environment:
+      AUTH_DATABASE_URL: postgresql+asyncpg://cloudfile:cloudfile@postgres:5432/cloudfile_auth
+      JWT_SECRET_KEY: local-dev-secret-change-me-0123456789
+      JWT_ALGORITHM: HS256
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      LOG_LEVEL: INFO
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  files:
+    build:
+      context: .
+      dockerfile: services/files/Dockerfile
+    environment:
+      FILES_DATABASE_URL: postgresql+asyncpg://cloudfile:cloudfile@postgres:5432/cloudfile_files
+      JWT_SECRET_KEY: local-dev-secret-change-me-0123456789
+      JWT_ALGORITHM: HS256
+      S3_BUCKET_NAME: cloudfile-uploads
+      S3_ENDPOINT_URL: http://localstack:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      PRESIGNED_URL_EXPIRE_SECONDS: "3600"
+      NOTIFICATION_SERVICE_URL: http://host.docker.internal:8004
+      LOG_LEVEL: INFO
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  search:
+    build:
+      context: .
+      dockerfile: services/search/Dockerfile
+    environment:
+      SEARCH_DATABASE_URL: postgresql+asyncpg://cloudfile:cloudfile@postgres:5432/cloudfile_files
+      JWT_SECRET_KEY: local-dev-secret-change-me-0123456789
+      JWT_ALGORITHM: HS256
+      LOG_LEVEL: INFO
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

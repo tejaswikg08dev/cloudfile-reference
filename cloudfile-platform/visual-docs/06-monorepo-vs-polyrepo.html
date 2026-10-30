@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Monorepo vs Polyrepo — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="07-local-deployment.html">Local →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🗂️ Page 06</div>
+    <h2 class="fade d1">Monorepo vs Separate Repo</h2>
+    <p class="sub fade d2">CloudFile uses <b>both</b> patterns on purpose. Press <b>Play</b> to watch a request cross the boundary between them.</p>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 360" role="img" aria-label="Monorepo vs polyrepo">
+        <!-- Monorepo -->
+        <rect x="20" y="30" width="560" height="300" rx="16" fill="rgba(14,165,233,0.05)" stroke="var(--files)" stroke-dasharray="4 6"/>
+        <text x="40" y="58" class="svg-label" style="fill:var(--files)">cloudfile-platform — MONOREPO</text>
+        <text x="40" y="78" class="svg-sub">one git repo · shared library · one CI</text>
+
+        <g id="n-auth" class="node" style="color:var(--auth)">
+          <rect x="60" y="110" width="150" height="60" rx="12" fill="#1b2744" stroke="var(--auth)"/>
+          <text x="135" y="145" text-anchor="middle" class="svg-label">auth</text>
+        </g>
+        <g id="n-files" class="node" style="color:var(--files)">
+          <rect x="230" y="110" width="150" height="60" rx="12" fill="#1b2744" stroke="var(--files)"/>
+          <text x="305" y="145" text-anchor="middle" class="svg-label">files</text>
+        </g>
+        <g id="n-search" class="node" style="color:var(--search)">
+          <rect x="400" y="110" width="150" height="60" rx="12" fill="#1b2744" stroke="var(--search)"/>
+          <text x="475" y="145" text-anchor="middle" class="svg-label">search</text>
+        </g>
+        <g id="n-shared" class="node" style="color:var(--brand-400)">
+          <rect x="140" y="220" width="320" height="56" rx="12" fill="#101b30" stroke="var(--brand-400)"/>
+          <text x="300" y="253" text-anchor="middle" class="svg-sub">shared/ · responses · exceptions · jwt · pagination</text>
+        </g>
+
+        <!-- Polyrepo -->
+        <rect x="620" y="30" width="340" height="300" rx="16" fill="rgba(236,72,153,0.05)" stroke="var(--notify)" stroke-dasharray="4 6"/>
+        <text x="640" y="58" class="svg-label" style="fill:var(--notify)">notification-service</text>
+        <text x="640" y="78" class="svg-sub">SEPARATE git repo · own CI · own deploy</text>
+        <g id="n-notify" class="node" style="color:var(--notify)">
+          <rect x="690" y="150" width="200" height="70" rx="12" fill="#2a1726" stroke="var(--notify)"/>
+          <text x="790" y="180" text-anchor="middle" class="svg-label">notification</text>
+          <text x="790" y="200" text-anchor="middle" class="svg-sub">self-contained</text>
+        </g>
+
+        <!-- cross-boundary edge -->
+        <line id="e-cross" class="edge" x1="380" y1="140" x2="690" y2="175" stroke="var(--notify)" stroke-width="2.5"/>
+        <text x="470" y="120" class="svg-sub">httpx + JWT (network call)</text>
+
+        <!-- token -->
+        <g id="token" class="token"><circle r="12" fill="var(--notify)" opacity="0.3"/><text text-anchor="middle" dy="4" font-size="13">✉️</text></g>
+      </svg>
+
+      <div class="player">
+        <button class="btn btn-primary" id="play">▶ Play</button>
+        <button class="btn" id="step">Step</button>
+        <button class="btn" id="reset">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="icon">📦</div><h3>Monorepo (platform)</h3><p>auth, files, search in one repo. Shared code via <code>shared/</code>, one Docker Compose, one CI matrix. Easy atomic changes across services.</p></div>
+      <div class="card"><div class="icon">🧩</div><h3>Separate repo (notification)</h3><p>Its own repo, CI, and deploy. Self-contained (own copies of logging/JWT) so it depends on no other repo. Models a team-owned service.</p></div>
+      <div class="card"><div class="icon">🔗</div><h3>How they connect</h3><p>Over the network: files calls notification with <code>httpx</code>, forwarding the user's JWT. Same shared secret → tokens verify on both sides.</p></div>
+    </div>
+
+    <div class="note">
+      <b>Interview line:</b> "Monorepo vs separate repo is a <i>code-organization</i>
+      choice, not an architecture one. The runtime is identical — independent
+      containers talking over HTTP. I used both to show I understand the
+      trade-offs."
+    </div>
+
+    <div class="btn-row" style="justify-content:flex-start">
+      <a class="btn" href="index.html">← All guides</a>
+      <a class="btn btn-primary" href="07-local-deployment.html">Next: Local Deployment →</a>
+    </div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Monorepo vs Polyrepo</div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+const steps = [
+  { caption:"The monorepo holds three services that share one library and one CI pipeline.", nodes:['n-auth','n-files','n-search','n-shared'] },
+  { caption:"All three import from <code>shared/</code> — responses, exceptions, JWT verification, pagination.", nodes:['n-shared','n-auth','n-files','n-search'] },
+  { caption:"The notification service lives in its own repo. It's self-contained — no dependency on the monorepo's shared library.", nodes:['n-notify'] },
+  { caption:"When files needs to notify, it makes a <b>network call</b> across the repo boundary using httpx + the shared JWT.", nodes:['n-files','n-notify','e-cross'], token:{at:'n-notify'} },
+];
+// token positions
+document.getElementById('n-files').setAttribute('data-cx','305');
+document.getElementById('n-files').setAttribute('data-cy','140');
+document.getElementById('n-notify').setAttribute('data-cx','790');
+document.getElementById('n-notify').setAttribute('data-cy','185');
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar', token:'token' });
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+</script>
+</body>
+</html>

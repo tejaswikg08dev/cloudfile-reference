@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Data Model — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="11-tech-skills.html">Skills →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🗃️ Page 10</div>
+    <h2 class="fade d1">Data Model &amp; Ownership</h2>
+    <p class="sub fade d2">Three tables. Who owns each, and who reads or writes it.</p>
+
+    <div class="grid">
+      <div class="card" style="border-color:var(--auth)">
+        <div class="icon">👤</div><h3 style="color:var(--auth)">users</h3>
+        <p>owned by <b>auth</b></p>
+        <div class="code code-sm" style="margin-top:12px">id · email (uniq)
+hashed_password
+full_name · is_active
+created_at</div>
+      </div>
+      <div class="card" style="border-color:var(--files)">
+        <div class="icon">📄</div><h3 style="color:var(--files)">files</h3>
+        <p>owned by <b>files</b> · read by <b>search</b> · updated by <b>processor</b></p>
+        <div class="code code-sm" style="margin-top:12px">id · owner_id (idx)
+filename · content_type
+size_bytes · s3_key (uniq)
+status · thumbnail_key
+created_at</div>
+      </div>
+      <div class="card" style="border-color:var(--notify)">
+        <div class="icon">✉️</div><h3 style="color:var(--notify)">notifications</h3>
+        <p>owned by <b>notification</b> (separate repo / own DB)</p>
+        <div class="code code-sm" style="margin-top:12px">id · recipient (idx)
+subject · message
+channel · status
+created_at</div>
+      </div>
+    </div>
+
+    <h3>Who touches the <code>files</code> table?</h3>
+    <table>
+      <tr><th>Service</th><th>Access</th><th>Why</th></tr>
+      <tr><td>files</td><td>read + write</td><td>owns the lifecycle (create, confirm, delete)</td></tr>
+      <tr><td>search</td><td>read only</td><td>a read model for filtering/pagination</td></tr>
+      <tr><td>processor (Lambda)</td><td>update</td><td>sets status=processed + thumbnail_key</td></tr>
+    </table>
+
+    <div class="note"><b>Honest trade-off:</b> files and search sharing one table isn't pure microservices isolation. It's a pragmatic read model (CQRS-lite). The upgrade path is an event bus (SNS/SQS) projecting into a search-owned datastore — call this out in interviews, it shows maturity.</div>
+
+    <div class="note"><b>status</b> moves through three values: <code>pending</code> (row created) → <code>ready</code> (client confirmed) → <code>processed</code> (Lambda finished).</div>
+
+    <div class="btn-row" style="justify-content:flex-start"><a class="btn" href="index.html">← All guides</a><a class="btn btn-primary" href="11-tech-skills.html">Next: Tech &amp; Skills →</a></div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Data Model</div>
+</div>
+</body>
+</html>

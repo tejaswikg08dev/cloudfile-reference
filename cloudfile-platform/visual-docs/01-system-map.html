@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System Map — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="index.html">Home</a><a href="03-upload-journey.html">Upload →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">🗺️ Page 01</div>
+    <h2 class="fade d1">The System Map</h2>
+    <p class="sub fade d2">Click a service to highlight what it talks to and read its role. Press <b>Play</b> for a guided tour.</p>
+
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--auth)"></span>auth</span>
+      <span class="item"><span class="swatch" style="background:var(--files)"></span>files</span>
+      <span class="item"><span class="swatch" style="background:var(--search)"></span>search</span>
+      <span class="item"><span class="swatch" style="background:var(--processor)"></span>processor (Lambda)</span>
+      <span class="item"><span class="swatch" style="background:var(--notify)"></span>notification (separate repo)</span>
+      <span class="item"><span class="swatch" style="background:var(--db)"></span>database</span>
+      <span class="item"><span class="swatch" style="background:var(--s3)"></span>S3</span>
+    </div>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 460" role="img" aria-label="System map">
+        <!-- client -->
+        <g id="n-client" class="node" style="color:var(--text)">
+          <rect x="420" y="20" width="140" height="56" rx="12" fill="#1b2744" stroke="#64748b"/>
+          <text x="490" y="53" text-anchor="middle" class="svg-label">Client</text>
+        </g>
+        <!-- ingress -->
+        <g id="n-ingress" class="node" style="color:var(--brand-400)">
+          <rect x="400" y="110" width="180" height="50" rx="12" fill="#1b2744" stroke="var(--brand-400)"/>
+          <text x="490" y="140" text-anchor="middle" class="svg-label">Ingress / LB</text>
+        </g>
+
+        <!-- services -->
+        <g id="n-auth" class="node" style="color:var(--auth)" tabindex="0">
+          <rect x="120" y="210" width="160" height="70" rx="12" fill="#1b2744" stroke="var(--auth)"/>
+          <text x="200" y="240" text-anchor="middle" class="svg-label">auth</text>
+          <text x="200" y="260" text-anchor="middle" class="svg-sub">:8001 · JWT</text>
+        </g>
+        <g id="n-files" class="node" style="color:var(--files)" tabindex="0">
+          <rect x="410" y="210" width="160" height="70" rx="12" fill="#1b2744" stroke="var(--files)"/>
+          <text x="490" y="240" text-anchor="middle" class="svg-label">files</text>
+          <text x="490" y="260" text-anchor="middle" class="svg-sub">:8002 · S3 URLs</text>
+        </g>
+        <g id="n-search" class="node" style="color:var(--search)" tabindex="0">
+          <rect x="700" y="210" width="160" height="70" rx="12" fill="#1b2744" stroke="var(--search)"/>
+          <text x="780" y="240" text-anchor="middle" class="svg-label">search</text>
+          <text x="780" y="260" text-anchor="middle" class="svg-sub">:8003 · query</text>
+        </g>
+
+        <!-- infra -->
+        <g id="n-authdb" class="node" style="color:var(--db)">
+          <rect x="130" y="330" width="140" height="56" rx="12" fill="#1b2744" stroke="var(--db)"/>
+          <text x="200" y="363" text-anchor="middle" class="svg-sub">users DB</text>
+        </g>
+        <g id="n-s3" class="node" style="color:var(--s3)">
+          <rect x="420" y="330" width="140" height="56" rx="12" fill="#13241a" stroke="var(--s3)"/>
+          <text x="490" y="363" text-anchor="middle" class="svg-sub">S3 bucket</text>
+        </g>
+        <g id="n-filesdb" class="node" style="color:var(--db)">
+          <rect x="700" y="330" width="140" height="56" rx="12" fill="#1b2744" stroke="var(--db)"/>
+          <text x="770" y="363" text-anchor="middle" class="svg-sub">files DB</text>
+        </g>
+        <g id="n-lambda" class="node" style="color:var(--processor)">
+          <rect x="420" y="410" width="140" height="44" rx="12" fill="#2a2411" stroke="var(--processor)"/>
+          <text x="490" y="438" text-anchor="middle" class="svg-sub">Lambda</text>
+        </g>
+        <g id="n-notify" class="node" style="color:var(--notify)">
+          <rect x="700" y="410" width="160" height="44" rx="12" fill="#2a1726" stroke="var(--notify)"/>
+          <text x="780" y="438" text-anchor="middle" class="svg-sub">notification (sep repo)</text>
+        </g>
+
+        <!-- edges -->
+        <line id="e-c-i" class="edge" x1="490" y1="76" x2="490" y2="110" stroke="#64748b" stroke-width="2"/>
+        <line id="e-i-auth" class="edge" x1="440" y1="160" x2="220" y2="210" stroke="var(--auth)" stroke-width="2"/>
+        <line id="e-i-files" class="edge" x1="490" y1="160" x2="490" y2="210" stroke="var(--files)" stroke-width="2"/>
+        <line id="e-i-search" class="edge" x1="540" y1="160" x2="760" y2="210" stroke="var(--search)" stroke-width="2"/>
+        <line id="e-auth-db" class="edge" x1="200" y1="280" x2="200" y2="330" stroke="var(--db)" stroke-width="2"/>
+        <line id="e-files-s3" class="edge" x1="490" y1="280" x2="490" y2="330" stroke="var(--s3)" stroke-width="2"/>
+        <line id="e-files-db" class="edge" x1="550" y1="280" x2="740" y2="330" stroke="var(--files)" stroke-width="2"/>
+        <line id="e-search-db" class="edge" x1="780" y1="280" x2="775" y2="330" stroke="var(--search)" stroke-width="2"/>
+        <line id="e-s3-lambda" class="edge" x1="490" y1="386" x2="490" y2="410" stroke="var(--processor)" stroke-width="2"/>
+        <line id="e-files-notify" class="edge" x1="570" y1="250" x2="700" y2="420" stroke="var(--notify)" stroke-width="2"/>
+      </svg>
+
+      <div class="player">
+        <button class="btn btn-primary" id="play">▶ Guided tour</button>
+        <button class="btn" id="step">Step</button>
+        <button class="btn" id="reset">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <table>
+      <tr><th>Service</th><th>Role</th><th>Talks to</th></tr>
+      <tr><td>auth</td><td>identity, issues/verifies JWT</td><td>users DB</td></tr>
+      <tr><td>files</td><td>file lifecycle, S3 presigned URLs, ownership</td><td>files DB, S3, notification</td></tr>
+      <tr><td>search</td><td>read-only filtering + pagination</td><td>files DB (read)</td></tr>
+      <tr><td>processor</td><td>thumbnails + metadata on S3 events</td><td>S3, files DB</td></tr>
+      <tr><td>notification</td><td>send + record messages (separate repo)</td><td>its own DB, SES</td></tr>
+    </table>
+
+    <div class="btn-row" style="justify-content:flex-start">
+      <a class="btn" href="index.html">← All guides</a>
+      <a class="btn btn-primary" href="03-upload-journey.html">Next: Upload Journey →</a>
+    </div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · System Map</div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+const steps = [
+  { caption:"The <b>client</b> sends all requests through a single <b>ingress / load balancer</b>, which routes by path prefix.", nodes:['n-client','n-ingress','e-c-i'] },
+  { caption:"<b>auth</b> handles register/login and owns the <b>users</b> database. It signs JWTs other services trust.", nodes:['n-auth','n-authdb','e-i-auth','e-auth-db'] },
+  { caption:"<b>files</b> manages uploads via S3 presigned URLs and stores metadata in the <b>files</b> database.", nodes:['n-files','n-s3','n-filesdb','e-i-files','e-files-s3','e-files-db'] },
+  { caption:"An S3 upload triggers the <b>processor Lambda</b>, which writes thumbnails and updates the files DB.", nodes:['n-s3','n-lambda','e-s3-lambda'] },
+  { caption:"<b>search</b> reads the same files database (a read model) to answer filtered, paginated queries.", nodes:['n-search','n-filesdb','e-i-search','e-search-db'] },
+  { caption:"After a confirmed upload, files calls the separately-deployed <b>notification</b> service (pink = separate repo).", nodes:['n-files','n-notify','e-files-notify'] },
+];
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar' });
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+
+// click-to-highlight for the three services
+const map = {
+  'n-auth': ['n-auth','n-authdb','e-i-auth','e-auth-db'],
+  'n-files': ['n-files','n-s3','n-filesdb','n-notify','n-lambda','e-i-files','e-files-s3','e-files-db','e-files-notify','e-s3-lambda'],
+  'n-search': ['n-search','n-filesdb','e-i-search','e-search-db'],
+};
+Object.keys(map).forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.cursor='pointer';
+  el.onclick=()=>{
+    player.pause();
+    document.querySelectorAll('#svg .active').forEach(n=>n.classList.remove('active'));
+    map[id].forEach(x=>{const e=document.getElementById(x); if(e)e.classList.add('active');});
+    document.getElementById('caption').innerHTML='<span class="step-no">Focus</span>Highlighting <b>'+id.replace('n-','')+'</b> and everything it connects to.';
+  };
+});
+</script>
+</body>
+</html>

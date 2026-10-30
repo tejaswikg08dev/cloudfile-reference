@@ -1,0 +1,45 @@
+"""Auth service FastAPI application entry point."""
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from shared.exceptions import install_exception_handlers
+from shared.logging_config import configure_logging, get_logger
+
+from .config import get_settings
+from .database import Base, engine
+from .router import router
+
+settings = get_settings()
+configure_logging(settings.log_level)
+logger = get_logger("auth.main")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # In local/dev we create tables on startup. In production, Alembic owns
+    # schema changes (see alembic/). create_all is safe & idempotent for dev.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("auth_service_started")
+    yield
+    await engine.dispose()
+    logger.info("auth_service_stopped")
+
+
+app = FastAPI(
+    title="CloudFile Auth Service",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+install_exception_handlers(app)
+app.include_router(router)
+
+
+@app.get("/health", tags=["health"])
+async def health() -> dict[str, str]:
+    """Liveness/readiness probe endpoint."""
+    return {"status": "ok", "service": settings.service_name}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upload Journey — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="01-system-map.html">← System</a><a href="index.html">Home</a><a href="04-auth-jwt.html">Auth →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">📤 Page 03</div>
+    <h2 class="fade d1">The Upload Journey</h2>
+    <p class="sub fade d2">This is the flow to show in interviews. Press <b>Play</b> and follow the 📄 file token through the whole system.</p>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 360" role="img" aria-label="Upload journey">
+        <g id="n-client" class="node" style="color:var(--text)" data-cx="70" data-cy="80">
+          <rect x="20" y="50" width="120" height="60" rx="12" fill="#1b2744" stroke="#64748b"/>
+          <text x="80" y="85" text-anchor="middle" class="svg-label">Client</text>
+        </g>
+        <g id="n-files" class="node" style="color:var(--files)" data-cx="320" data-cy="80">
+          <rect x="250" y="50" width="150" height="60" rx="12" fill="#1b2744" stroke="var(--files)"/>
+          <text x="325" y="78" text-anchor="middle" class="svg-label">files</text>
+          <text x="325" y="96" text-anchor="middle" class="svg-sub">:8002</text>
+        </g>
+        <g id="n-s3" class="node" style="color:var(--s3)" data-cx="620" data-cy="80">
+          <rect x="540" y="50" width="150" height="60" rx="12" fill="#13241a" stroke="var(--s3)"/>
+          <text x="615" y="85" text-anchor="middle" class="svg-label">S3</text>
+        </g>
+        <g id="n-db" class="node" style="color:var(--db)" data-cx="320" data-cy="230">
+          <rect x="250" y="200" width="150" height="60" rx="12" fill="#1b2744" stroke="var(--db)"/>
+          <text x="325" y="235" text-anchor="middle" class="svg-label">files DB</text>
+        </g>
+        <g id="n-lambda" class="node" style="color:var(--processor)" data-cx="620" data-cy="230">
+          <rect x="540" y="200" width="150" height="60" rx="12" fill="#2a2411" stroke="var(--processor)"/>
+          <text x="615" y="235" text-anchor="middle" class="svg-label">Lambda</text>
+        </g>
+        <g id="n-notify" class="node" style="color:var(--notify)" data-cx="850" data-cy="80">
+          <rect x="780" y="50" width="160" height="60" rx="12" fill="#2a1726" stroke="var(--notify)"/>
+          <text x="860" y="78" text-anchor="middle" class="svg-label">notification</text>
+          <text x="860" y="96" text-anchor="middle" class="svg-sub">sep repo</text>
+        </g>
+
+        <line id="e1" class="edge" x1="140" y1="80" x2="250" y2="80" stroke="var(--files)" stroke-width="2"/>
+        <line id="e2" class="edge" x1="140" y1="95" x2="540" y2="95" stroke="var(--s3)" stroke-width="2"/>
+        <line id="e3" class="edge" x1="325" y1="110" x2="325" y2="200" stroke="var(--db)" stroke-width="2"/>
+        <line id="e4" class="edge" x1="400" y1="80" x2="780" y2="80" stroke="var(--notify)" stroke-width="2"/>
+        <line id="e5" class="edge" x1="615" y1="110" x2="615" y2="200" stroke="var(--processor)" stroke-width="2"/>
+        <line id="e6" class="edge" x1="540" y1="230" x2="400" y2="230" stroke="var(--processor)" stroke-width="2"/>
+
+        <!-- file token -->
+        <g id="token" class="token">
+          <circle r="16" fill="#0ea5e9" opacity="0.25"/>
+          <text text-anchor="middle" dy="5" font-size="16">📄</text>
+        </g>
+      </svg>
+
+      <div class="player">
+        <button class="btn btn-primary" id="play">▶ Play</button>
+        <button class="btn" id="step">Step</button>
+        <button class="btn" id="reset">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <div class="note">
+      <b>Why this design?</b> The client uploads bytes <i>directly</i> to S3 via
+      a presigned URL, so the service never proxies large files and stays
+      stateless. The async Lambda keeps heavy work (thumbnails) off the request
+      path. Notifications are fire-and-forget, so they never block the upload.
+    </div>
+
+    <div class="btn-row" style="justify-content:flex-start">
+      <a class="btn" href="01-system-map.html">← System</a>
+      <a class="btn btn-primary" href="04-auth-jwt.html">Next: Auth &amp; JWT →</a>
+    </div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Upload Journey</div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+const steps = [
+  { caption:"1 · Client calls <code>POST /files/upload</code> with file metadata and a JWT.", nodes:['n-client','n-files','e1'], token:{at:'n-files'} },
+  { caption:"2 · files inserts a <code>pending</code> row in the DB and returns a <b>presigned PUT URL</b> + file_id.", nodes:['n-files','n-db','e3'], token:{at:'n-db'} },
+  { caption:"3 · Client uploads the bytes <b>directly to S3</b> using the presigned URL.", nodes:['n-client','n-s3','e2'], token:{at:'n-s3'} },
+  { caption:"4 · Client calls <code>POST /files/confirm</code>; files marks the row <code>ready</code>.", nodes:['n-files','n-db','e3'], token:{at:'n-files'} },
+  { caption:"5 · files calls the <b>notification</b> service (fire-and-forget, JWT forwarded).", nodes:['n-files','n-notify','e4'], token:{at:'n-notify'} },
+  { caption:"6 · S3 emits <code>ObjectCreated</code> → triggers the <b>processor Lambda</b>.", nodes:['n-s3','n-lambda','e5'], token:{at:'n-lambda'} },
+  { caption:"7 · Lambda writes a thumbnail to S3 and updates the DB row to <code>processed</code>. Done ✅", nodes:['n-lambda','n-db','e6'], token:{at:'n-db'} },
+];
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar', token:'token' });
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+</script>
+</body>
+</html>

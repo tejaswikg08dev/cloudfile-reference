@@ -1,0 +1,37 @@
+# NGINX Ingress routing by path prefix to each service.
+# On minikube: `minikube addons enable ingress`, then add to /etc/hosts:
+#   127.0.0.1 cloudfile.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloudfile-ingress
+  namespace: cloudfile
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cloudfile.local
+      http:
+        paths:
+          - path: /auth(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: auth
+                port:
+                  number: 8001
+          - path: /files(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: files
+                port:
+                  number: 8002
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: search
+                port:
+                  number: 8003

@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["services", "shared"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+ignore = ["B008"]  # FastAPI uses function calls in defaults (Depends)
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_untyped_defs = false
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+# Each service is tested independently (see Makefile `test` target) because
+# the three services each define their own top-level `app` and `tests`
+# packages. Running them together would cause import name collisions.
+asyncio_mode = "auto"
+addopts = "-q"

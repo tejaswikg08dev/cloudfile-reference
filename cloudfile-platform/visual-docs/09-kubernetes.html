@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kubernetes — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links"><a href="08-cloud-deployment.html">← Cloud</a><a href="index.html">Home</a><a href="10-data-model.html">Data →</a></div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">☸️ Page 09</div>
+    <h2 class="fade d1">Kubernetes View (minikube)</h2>
+    <p class="sub fade d2">How the services run as pods. Press <b>Play</b> to watch the HPA scale <code>files</code> up under load.</p>
+
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--brand-400)"></span>Ingress</span>
+      <span class="item"><span class="swatch" style="background:var(--files)"></span>Service → Pods</span>
+      <span class="item"><span class="swatch" style="background:var(--amber)"></span>HPA</span>
+    </div>
+
+    <div class="panel">
+      <svg id="svg" viewBox="0 0 980 360" role="img" aria-label="Kubernetes view">
+        <rect x="20" y="20" width="940" height="320" rx="16" fill="none" stroke="#243150" stroke-dasharray="4 6"/>
+        <text x="36" y="46" class="svg-sub">namespace: cloudfile</text>
+
+        <g id="n-ingress" class="node" style="color:var(--brand-400)"><rect x="60" y="150" width="140" height="60" rx="12" fill="#1b2744" stroke="var(--brand-400)"/><text x="130" y="185" text-anchor="middle" class="svg-label">Ingress</text></g>
+
+        <g id="n-svc" class="node" style="color:var(--files)"><rect x="250" y="150" width="140" height="60" rx="12" fill="#1b2744" stroke="var(--files)"/><text x="320" y="178" text-anchor="middle" class="svg-label">Service</text><text x="320" y="196" text-anchor="middle" class="svg-sub">files :8002</text></g>
+
+        <!-- pods -->
+        <g id="pod1" class="node" style="color:var(--files)"><rect x="470" y="90" width="110" height="50" rx="10" fill="#1b2744" stroke="var(--files)"/><text x="525" y="120" text-anchor="middle" class="svg-sub">pod 1</text></g>
+        <g id="pod2" class="node" style="color:var(--files)"><rect x="470" y="155" width="110" height="50" rx="10" fill="#1b2744" stroke="var(--files)"/><text x="525" y="185" text-anchor="middle" class="svg-sub">pod 2</text></g>
+        <g id="pod3" class="node" style="color:var(--files)" opacity="0.25"><rect x="470" y="220" width="110" height="50" rx="10" fill="#1b2744" stroke="var(--files)"/><text x="525" y="250" text-anchor="middle" class="svg-sub">pod 3</text></g>
+        <g id="pod4" class="node" style="color:var(--files)" opacity="0.25"><rect x="470" y="285" width="110" height="40" rx="10" fill="#1b2744" stroke="var(--files)"/><text x="525" y="310" text-anchor="middle" class="svg-sub">pod 4</text></g>
+
+        <g id="n-hpa" class="node" style="color:var(--amber)"><rect x="660" y="150" width="140" height="60" rx="12" fill="#2a2411" stroke="var(--amber)"/><text x="730" y="178" text-anchor="middle" class="svg-label">HPA</text><text x="730" y="196" text-anchor="middle" class="svg-sub">cpu &gt; 70%</text></g>
+
+        <line id="e1" class="edge" x1="200" y1="180" x2="250" y2="180" stroke="var(--brand-400)" stroke-width="2"/>
+        <line id="e2" class="edge" x1="390" y1="170" x2="470" y2="115" stroke="var(--files)" stroke-width="2"/>
+        <line id="e3" class="edge" x1="390" y1="185" x2="470" y2="180" stroke="var(--files)" stroke-width="2"/>
+        <line id="e-hpa" class="edge" x1="660" y1="180" x2="580" y2="180" stroke="var(--amber)" stroke-width="2"/>
+      </svg>
+      <div class="player"><button class="btn btn-primary" id="play">▶ Play</button><button class="btn" id="step">Step</button><button class="btn" id="reset">Reset</button></div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+
+    <div class="code"><span class="c"># Deploy to minikube</span>
+kubectl apply -f infra/k8s/namespace.yaml
+kubectl apply -f infra/k8s/configmap.yaml -f infra/k8s/secrets.yaml
+kubectl apply -f infra/k8s/postgres.yaml
+kubectl apply -f infra/k8s/auth.yaml -f infra/k8s/files.yaml -f infra/k8s/search.yaml
+kubectl apply -f infra/k8s/ingress.yaml -f infra/k8s/hpa.yaml</div>
+
+    <div class="btn-row" style="justify-content:flex-start"><a class="btn" href="index.html">← All guides</a><a class="btn btn-primary" href="10-data-model.html">Next: Data Model →</a></div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · Kubernetes</div>
+</div>
+<script src="assets/app.js"></script>
+<script>
+function show(id,o){const e=document.getElementById(id); if(e) e.setAttribute('opacity',o);}
+const steps = [
+  { caption:"The <b>Ingress</b> routes <code>/files</code> traffic to the files <b>Service</b>.", nodes:['n-ingress','n-svc','e1'] },
+  { caption:"The Service load-balances across the running <b>pods</b> (replicas: 2 to start).", nodes:['n-svc','pod1','pod2','e2','e3'] },
+  { caption:"The <b>HPA</b> watches CPU. Traffic rises and CPU crosses 70%...", nodes:['n-hpa','e-hpa'] },
+  { caption:"HPA scales up: pod 3 is created to handle the load.", nodes:['n-hpa','pod3'], after:()=>show('pod3',1) },
+  { caption:"Load keeps climbing — pod 4 spins up (max 5). When load drops, HPA scales back down.", nodes:['n-hpa','pod4'], after:()=>show('pod4',1) },
+];
+const player = new StepPlayer({ svg:'svg', steps, caption:'caption', bar:'bar' });
+const origStep=player.step.bind(player); player.step=function(){origStep(); const s=this.steps[this.i]; if(s&&s.after)s.after();};
+const origReset=player.reset.bind(player); player.reset=function(){show('pod3',0.25);show('pod4',0.25);origReset();};
+wirePlayer(player, { play:'play', step:'step', reset:'reset' });
+</script>
+</body>
+</html>

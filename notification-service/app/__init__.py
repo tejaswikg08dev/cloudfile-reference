@@ -1,0 +1,1 @@
+"""Notification microservice (separate repository)."""
