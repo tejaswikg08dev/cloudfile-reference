@@ -21,6 +21,9 @@ Read in order for a guided learning path, or jump to what you need.
 | 13 | [13-local-setup-complete.md](13-local-setup-complete.md) | Full teaching walkthrough: clone → running → tested |
 | 14 | [14-production-setup-complete.md](14-production-setup-complete.md) | Full AWS deploy: provision → push → verify → destroy |
 | 15 | [15-testing-guide.md](15-testing-guide.md) | Postman + e2e script + pytest, all three ways to test |
+| 16 | [16-manual-testing-walkthrough.md](16-manual-testing-walkthrough.md) | Beginner-friendly: what it is + hand-test every feature via Swagger |
+| 17 | [17-test-images-and-email.md](17-test-images-and-email.md) | Upload a real image + receive a real email (Mailtrap) |
+| 18 | [18-kubernetes-run-guide.md](18-kubernetes-run-guide.md) | Run on Kubernetes (minikube) step by step + EKS notes |
 
 Also see:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — concise architecture reference

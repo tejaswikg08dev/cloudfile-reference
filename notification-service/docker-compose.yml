@@ -27,8 +27,17 @@ services:
       NOTIFICATION_DATABASE_URL: postgresql+asyncpg://notify:notify@notify-db:5432/notifications
       JWT_SECRET_KEY: local-dev-secret-change-me-0123456789
       JWT_ALGORITHM: HS256
-      NOTIFICATION_PROVIDER: console
+      # Change to "smtp" to send real email via Mailtrap (fill SMTP_* below or
+      # in a .env file). Keep "console" to just log + record notifications.
+      NOTIFICATION_PROVIDER: ${NOTIFICATION_PROVIDER:-console}
       LOG_LEVEL: INFO
+      # SMTP / Mailtrap (read from your shell env or a .env file; blank = unused)
+      SMTP_HOST: ${SMTP_HOST:-sandbox.smtp.mailtrap.io}
+      SMTP_PORT: ${SMTP_PORT:-2525}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SENDER: ${SMTP_SENDER:-no-reply@cloudfile.example.com}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
     ports:
       - "8004:8004"
     depends_on:

@@ -11,5 +11,6 @@ alongside the `cloudfile-platform` monorepo.
 | 02 | [02-local-deployment.md](02-local-deployment.md) | Run it locally, step by step |
 | 03 | [03-testing.md](03-testing.md) | What's tested, how to run |
 | 04 | [04-cloud-deployment.md](04-cloud-deployment.md) | Kubernetes + AWS notes |
+| 05 | [05-real-email-setup.md](05-real-email-setup.md) | Real email: Mailtrap (local) + AWS SES (production) |
 
 See also the top-level [README.md](../README.md).
