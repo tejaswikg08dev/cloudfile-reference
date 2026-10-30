@@ -67,7 +67,16 @@ def install_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(AppError)
     async def _handle_app_error(_: Request, exc: AppError) -> JSONResponse:
-        logger.warning("app_error", extra={"code": exc.code, "message": exc.message})
+        # NOTE: "message" is a reserved LogRecord attribute — passing it via
+        # `extra=` raises KeyError. Use safe custom keys instead. We also guard
+        # the log call so a logging problem can never turn a clean 4xx into 500.
+        try:
+            logger.warning(
+                "app_error",
+                extra={"error_code": exc.code, "error_message": exc.message},
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return JSONResponse(
             status_code=exc.status_code,
             content=err(exc.code, exc.message, exc.details),

@@ -9,7 +9,9 @@ logger = get_logger("notification.console")
 
 class ConsoleProvider(NotificationProvider):
     async def send(self, recipient: str, subject: str, message: str) -> None:
+        # "message" is a reserved LogRecord attribute; passing it via `extra=`
+        # raises KeyError. Use a safe key (body) instead.
         logger.info(
             "notification_console",
-            extra={"recipient": recipient, "subject": subject, "message": message},
+            extra={"recipient": recipient, "subject": subject, "body": message},
         )
