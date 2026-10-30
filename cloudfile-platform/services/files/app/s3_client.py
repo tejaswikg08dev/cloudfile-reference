@@ -22,14 +22,23 @@ from .config import get_settings
 
 def _build_client(endpoint_url: str | None):
     settings = get_settings()
-    return boto3.client(
-        "s3",
-        region_name=settings.aws_region,
-        endpoint_url=endpoint_url,
-        aws_access_key_id=settings.aws_access_key_id,
-        aws_secret_access_key=settings.aws_secret_access_key,
-        config=Config(signature_version="s3v4"),
-    )
+
+    kwargs: dict = {
+        "region_name": settings.aws_region,
+        "endpoint_url": endpoint_url,
+        "config": Config(signature_version="s3v4"),
+    }
+
+    # Only pass explicit credentials for LocalStack (where an endpoint URL is
+    # set). On real AWS (no endpoint URL), omit them so boto3 uses the ECS task
+    # IAM role / environment — passing the dummy "test" keys would otherwise
+    # cause InvalidAccessKeyId errors against real S3.
+    use_explicit_creds = bool(endpoint_url) and settings.aws_access_key_id
+    if use_explicit_creds:
+        kwargs["aws_access_key_id"] = settings.aws_access_key_id
+        kwargs["aws_secret_access_key"] = settings.aws_secret_access_key
+
+    return boto3.client("s3", **kwargs)
 
 
 class S3Client:

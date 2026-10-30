@@ -217,9 +217,13 @@ $100 credits.
 | Symptom | Fix |
 |---------|-----|
 | `terraform apply` asks for `db_password` | you didn't `export TF_VAR_db_password=...` in this terminal |
+| `Cannot find version 15 for postgres` | pick a valid version: `aws rds describe-db-engine-versions --engine postgres --query 'DBEngineVersions[].EngineVersion' --output text`, then `terraform apply -var="db_engine_version=15.8"` |
 | ECS task `CannotPullContainerError` | images not pushed yet — do Phase 2, then Phase 3 |
 | service stuck `running: 0` | check CloudWatch logs `/ecs/cloudfile-auth`; usually DB URL/secret |
-| can't curl the public IP | security group allows 8001–8003; make sure you used the right port |
+| files logs `InvalidAccessKeyId` on S3 | fixed in code: on AWS the task uses its IAM role (no dummy keys). Make sure you rebuilt/pushed the latest `files` image |
+| files logs `bucket_ensure_failed` | harmless — bucket already exists; startup continues |
+| RDS create is slow | normal — RDS takes 5–10 min to become available |
+| can't curl the public IP | security group allows 8001–8003; make sure you used the right port; task must be RUNNING |
 | `destroy` fails on bucket | `aws s3 rm s3://<bucket> --recursive`, then destroy again |
 | surprise this costs money | you left it running — run Phase 6 |
 

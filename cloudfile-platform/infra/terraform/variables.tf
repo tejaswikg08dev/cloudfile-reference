@@ -16,6 +16,19 @@ variable "db_name" {
   default     = "cloudfile_files"
 }
 
+variable "db_engine_version" {
+  description = <<-EOT
+    PostgreSQL major version for RDS. A major-only value (e.g. "15") lets AWS
+    pick the latest supported minor automatically. If apply fails with
+    "Cannot find version ... for postgres", run:
+      aws rds describe-db-engine-versions --engine postgres \
+        --query 'DBEngineVersions[].EngineVersion' --output text
+    and set this to one of those (e.g. "15.8" or "16.4").
+  EOT
+  type    = string
+  default = "15"
+}
+
 variable "db_username" {
   description = "RDS master username"
   type        = string

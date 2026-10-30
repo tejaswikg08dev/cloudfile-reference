@@ -61,9 +61,16 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 data "aws_iam_policy_document" "ecs_task_s3" {
+  # Object-level actions on items inside the bucket.
   statement {
     actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = ["${aws_s3_bucket.uploads.arn}/*"]
+  }
+  # Bucket-level actions (HeadBucket/ListBucket) on the bucket itself, so the
+  # files service's startup ensure_bucket() check succeeds cleanly.
+  statement {
+    actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
+    resources = [aws_s3_bucket.uploads.arn]
   }
 }
 
