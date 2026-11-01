@@ -25,6 +25,7 @@ Read in order for a guided learning path, or jump to what you need.
 | 17 | [17-test-images-and-email.md](17-test-images-and-email.md) | Upload a real image + receive a real email (Mailtrap) |
 | 18 | [18-kubernetes-run-guide.md](18-kubernetes-run-guide.md) | Run on Kubernetes (minikube) step by step + EKS notes |
 | 19 | [19-aws-deploy-runbook.md](19-aws-deploy-runbook.md) | Baby-steps AWS deploy (Terraform + CLI) → test → destroy |
+| 20 | [20-production-testing.md](20-production-testing.md) | Test the live AWS system: upload image/file, verify in S3, search, download |
 
 Also see:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — concise architecture reference
