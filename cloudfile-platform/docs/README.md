@@ -26,6 +26,7 @@ Read in order for a guided learning path, or jump to what you need.
 | 18 | [18-kubernetes-run-guide.md](18-kubernetes-run-guide.md) | Run on Kubernetes (minikube) step by step + EKS notes |
 | 19 | [19-aws-deploy-runbook.md](19-aws-deploy-runbook.md) | Baby-steps AWS deploy (Terraform + CLI) → test → destroy |
 | 20 | [20-production-testing.md](20-production-testing.md) | Test the live AWS system: upload image/file, verify in S3, search, download |
+| 21 | [21-terraform-aws-deep-dive.md](21-terraform-aws-deep-dive.md) | **Deep dive hub** → 21a–21k: AWS + Terraform from zero, how it all works |
 
 Also see:
 - [ARCHITECTURE.md](ARCHITECTURE.md) — concise architecture reference

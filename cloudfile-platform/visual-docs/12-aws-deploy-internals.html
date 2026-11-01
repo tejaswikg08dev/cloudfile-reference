@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AWS Deploy Internals — CloudFile Visual Docs</title>
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="dot"></span> CloudFile</a>
+  <div class="nav-links">
+    <a href="08-cloud-deployment.html">← Cloud</a>
+    <a href="index.html">Home</a>
+  </div>
+</nav>
+
+<div class="container">
+  <section class="section">
+    <div class="badge fade">☁️ Page 12</div>
+    <h2 class="fade d1">AWS Deploy Internals</h2>
+    <p class="sub fade d2">Watch Terraform <b>build</b> AWS resource-by-resource, a <b>request</b> flow through the live system, and <b>destroy</b> tear it all down. Pairs with docs 21a–21k.</p>
+
+    <div class="note warn">
+      <span class="warn-title">💸 Reminder:</span> on real AWS, always finish with
+      <code>terraform destroy</code>. The only real cost is ECS Fargate while tasks run.
+    </div>
+
+    <!-- ===================== Animation 1: BUILD ===================== -->
+    <h3 style="margin-top:28px">1 · Terraform builds AWS (dependency order)</h3>
+    <div class="legend">
+      <span class="item"><span class="swatch" style="background:var(--brand-400)"></span>network</span>
+      <span class="item"><span class="swatch" style="background:var(--aws)"></span>registry/compute</span>
+      <span class="item"><span class="swatch" style="background:var(--db)"></span>database</span>
+      <span class="item"><span class="swatch" style="background:var(--s3)"></span>storage</span>
+      <span class="item"><span class="swatch" style="background:var(--processor)"></span>lambda</span>
+      <span class="item"><span class="swatch" style="background:var(--auth)"></span>iam</span>
+    </div>
+    <div class="panel">
+      <svg id="svgbuild" viewBox="0 0 980 420" role="img" aria-label="Terraform build order">
+        <!-- VPC container -->
+        <rect id="b-vpc" class="node" style="color:var(--brand-400)" x="30" y="40" width="620" height="350" rx="14" fill="none" stroke="var(--brand-400)" opacity="0.25"/>
+        <text x="46" y="64" class="svg-sub">VPC 10.0.0.0/16</text>
+
+        <g id="b-igw" class="node" style="color:var(--brand-400)"><rect x="60" y="80" width="130" height="44" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="125" y="107" text-anchor="middle" class="svg-sub">IGW</text></g>
+        <g id="b-subnets" class="node" style="color:var(--brand-400)"><rect x="210" y="80" width="170" height="44" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="295" y="107" text-anchor="middle" class="svg-sub">2 public subnets</text></g>
+        <g id="b-rt" class="node" style="color:var(--brand-400)"><rect x="400" y="80" width="150" height="44" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="475" y="107" text-anchor="middle" class="svg-sub">route table</text></g>
+
+        <g id="b-ecssg" class="node" style="color:var(--brand-400)"><rect x="60" y="150" width="150" height="44" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="135" y="177" text-anchor="middle" class="svg-sub">ECS SG</text></g>
+        <g id="b-rdssg" class="node" style="color:var(--brand-400)"><rect x="230" y="150" width="150" height="44" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="305" y="177" text-anchor="middle" class="svg-sub">RDS SG</text></g>
+
+        <g id="b-ecr" class="node" style="color:var(--aws)"><rect x="400" y="150" width="150" height="44" rx="10" fill="#2a2411" stroke="var(--aws)"/><text x="475" y="177" text-anchor="middle" class="svg-sub">ECR ×3</text></g>
+        <g id="b-iam" class="node" style="color:var(--auth)"><rect x="60" y="220" width="150" height="44" rx="10" fill="#1b2744" stroke="var(--auth)"/><text x="135" y="247" text-anchor="middle" class="svg-sub">IAM roles</text></g>
+        <g id="b-rds" class="node" style="color:var(--db)"><rect x="230" y="220" width="150" height="44" rx="10" fill="#1b2744" stroke="var(--db)"/><text x="305" y="247" text-anchor="middle" class="svg-sub">RDS (slow)</text></g>
+
+        <g id="b-cluster" class="node" style="color:var(--aws)"><rect x="60" y="300" width="150" height="44" rx="10" fill="#2a2411" stroke="var(--aws)"/><text x="135" y="327" text-anchor="middle" class="svg-sub">ECS cluster</text></g>
+        <g id="b-taskdef" class="node" style="color:var(--aws)"><rect x="230" y="300" width="150" height="44" rx="10" fill="#2a2411" stroke="var(--aws)"/><text x="305" y="327" text-anchor="middle" class="svg-sub">task defs ×3</text></g>
+        <g id="b-svc" class="node" style="color:var(--aws)"><rect x="400" y="300" width="150" height="44" rx="10" fill="#2a2411" stroke="var(--aws)"/><text x="475" y="320" text-anchor="middle" class="svg-sub">services ×3</text><text x="475" y="336" text-anchor="middle" class="svg-sub">(0 tasks)</text></g>
+
+        <!-- Outside VPC -->
+        <g id="b-s3" class="node" style="color:var(--s3)"><rect x="690" y="90" width="150" height="50" rx="10" fill="#13241a" stroke="var(--s3)"/><text x="765" y="120" text-anchor="middle" class="svg-sub">S3 bucket</text></g>
+        <g id="b-lambda" class="node" style="color:var(--processor)"><rect x="690" y="170" width="150" height="50" rx="10" fill="#2a2411" stroke="var(--processor)"/><text x="765" y="200" text-anchor="middle" class="svg-sub">Lambda</text></g>
+        <g id="b-notif" class="node" style="color:var(--s3)"><rect x="690" y="250" width="200" height="50" rx="10" fill="#13241a" stroke="var(--s3)"/><text x="790" y="280" text-anchor="middle" class="svg-sub">S3 → Lambda trigger</text></g>
+      </svg>
+      <div class="player">
+        <button class="btn btn-primary" id="playb">▶ Play build</button>
+        <button class="btn" id="stepb">Step</button>
+        <button class="btn" id="resetb">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="barb"></div></div>
+      <div class="caption" id="captionb"></div>
+    </div>
+
+    <!-- ===================== Animation 2: REQUEST ===================== -->
+    <h3 style="margin-top:28px">2 · A request flows through live AWS</h3>
+    <div class="panel">
+      <svg id="svgreq" viewBox="0 0 980 300" role="img" aria-label="Request flow">
+        <g id="r-you" class="node" style="color:var(--text)"><rect x="20" y="120" width="110" height="56" rx="10" fill="#1b2744" stroke="#64748b"/><text x="75" y="153" text-anchor="middle" class="svg-label">You</text></g>
+        <g id="r-igw" class="node" style="color:var(--brand-400)"><rect x="170" y="120" width="110" height="56" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="225" y="153" text-anchor="middle" class="svg-sub">IGW</text></g>
+        <g id="r-files" class="node" style="color:var(--files)"><rect x="320" y="120" width="140" height="56" rx="10" fill="#1b2744" stroke="var(--files)"/><text x="390" y="145" text-anchor="middle" class="svg-label">files task</text><text x="390" y="162" text-anchor="middle" class="svg-sub">Fargate</text></g>
+        <g id="r-rds" class="node" style="color:var(--db)"><rect x="520" y="60" width="130" height="56" rx="10" fill="#1b2744" stroke="var(--db)"/><text x="585" y="93" text-anchor="middle" class="svg-sub">RDS</text></g>
+        <g id="r-s3" class="node" style="color:var(--s3)"><rect x="520" y="180" width="130" height="56" rx="10" fill="#13241a" stroke="var(--s3)"/><text x="585" y="213" text-anchor="middle" class="svg-sub">S3</text></g>
+        <g id="r-lambda" class="node" style="color:var(--processor)"><rect x="720" y="180" width="130" height="56" rx="10" fill="#2a2411" stroke="var(--processor)"/><text x="785" y="213" text-anchor="middle" class="svg-sub">Lambda</text></g>
+
+        <line id="re1" class="edge" x1="130" y1="148" x2="170" y2="148" stroke="#64748b" stroke-width="2"/>
+        <line id="re2" class="edge" x1="280" y1="148" x2="320" y2="148" stroke="var(--files)" stroke-width="2"/>
+        <line id="re3" class="edge" x1="460" y1="135" x2="520" y2="95"  stroke="var(--db)" stroke-width="2"/>
+        <line id="re4" class="edge" x1="130" y1="160" x2="520" y2="205" stroke="var(--s3)" stroke-width="2"/>
+        <line id="re5" class="edge" x1="650" y1="208" x2="720" y2="208" stroke="var(--processor)" stroke-width="2"/>
+
+        <g id="rtoken" class="token"><circle r="14" fill="#0ea5e9" opacity="0.3"/><text text-anchor="middle" dy="5" font-size="14">📄</text></g>
+      </svg>
+      <div class="player">
+        <button class="btn btn-primary" id="playr">▶ Play request</button>
+        <button class="btn" id="stepr">Step</button>
+        <button class="btn" id="resetr">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="barr"></div></div>
+      <div class="caption" id="captionr"></div>
+    </div>
+
+    <!-- ===================== Animation 3: DESTROY ===================== -->
+    <h3 style="margin-top:28px">3 · terraform destroy (reverse order)</h3>
+    <div class="panel">
+      <svg id="svgdes" viewBox="0 0 980 120" role="img" aria-label="Destroy order">
+        <g id="d1" class="node" style="color:var(--aws)"><rect x="20"  y="40" width="150" height="48" rx="10" fill="#2a2411" stroke="var(--aws)"/><text x="95"  y="69" text-anchor="middle" class="svg-sub">ECS services</text></g>
+        <g id="d2" class="node" style="color:var(--db)"><rect x="200" y="40" width="130" height="48" rx="10" fill="#1b2744" stroke="var(--db)"/><text x="265" y="69" text-anchor="middle" class="svg-sub">RDS</text></g>
+        <g id="d3" class="node" style="color:var(--s3)"><rect x="360" y="40" width="150" height="48" rx="10" fill="#13241a" stroke="var(--s3)"/><text x="435" y="69" text-anchor="middle" class="svg-sub">S3 + Lambda</text></g>
+        <g id="d4" class="node" style="color:var(--aws)"><rect x="540" y="40" width="130" height="48" rx="10" fill="#2a2411" stroke="var(--aws)"/><text x="605" y="69" text-anchor="middle" class="svg-sub">ECR + IAM</text></g>
+        <g id="d5" class="node" style="color:var(--brand-400)"><rect x="700" y="40" width="150" height="48" rx="10" fill="#101b30" stroke="var(--brand-400)"/><text x="775" y="69" text-anchor="middle" class="svg-sub">VPC + network</text></g>
+      </svg>
+      <div class="player">
+        <button class="btn btn-primary" id="playd">▶ Play destroy</button>
+        <button class="btn" id="stepd">Step</button>
+        <button class="btn" id="resetd">Reset</button>
+      </div>
+      <div class="progress"><div class="bar" id="bard"></div></div>
+      <div class="caption" id="captiond"></div>
+    </div>
+
+    <div class="note">Read the full explanations in <b>docs/21a–21k</b>. This page is the visual companion.</div>
+
+    <div class="btn-row" style="justify-content:flex-start">
+      <a class="btn" href="index.html">← All guides</a>
+      <a class="btn btn-primary" href="08-cloud-deployment.html">Cloud overview →</a>
+    </div>
+  </section>
+  <div class="footer">CloudFile Visual Docs · AWS Deploy Internals</div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+// Build animation
+const buildSteps = [
+  { caption:"Terraform starts with the <b>VPC</b> — your private network. Everything lives inside it.", nodes:['b-vpc'] },
+  { caption:"Inside the VPC: the <b>Internet Gateway</b>, <b>2 public subnets</b> (2 AZs), and a <b>route table</b> sending internet traffic to the IGW.", nodes:['b-vpc','b-igw','b-subnets','b-rt'] },
+  { caption:"<b>Security groups</b>: the ECS SG (allows 8001–8003) then the RDS SG (which references the ECS SG → created after it).", nodes:['b-ecssg','b-rdssg'] },
+  { caption:"<b>ECR</b> repositories (×3) for the images, and the <b>IAM roles</b> the services and Lambda will wear.", nodes:['b-ecr','b-iam'] },
+  { caption:"<b>RDS</b> Postgres — the slow part (5–10 min). Its DB URL gets baked into the ECS task env, so it must exist first.", nodes:['b-rds'] },
+  { caption:"<b>ECS</b>: the cluster, then 3 task definitions (referencing ECR + IAM + the RDS endpoint), then 3 services at <b>0 tasks</b> (images not pushed yet).", nodes:['b-cluster','b-taskdef','b-svc'] },
+  { caption:"Outside the VPC: the <b>S3 bucket</b>, the <b>Lambda</b>, and the <b>S3→Lambda trigger</b>. Infra complete — now push images and scale services to 1.", nodes:['b-s3','b-lambda','b-notif'] },
+];
+const bp = new StepPlayer({ svg:'svgbuild', steps:buildSteps, caption:'captionb', bar:'barb' });
+wirePlayer(bp, { play:'playb', step:'stepb', reset:'resetb' });
+
+// Request animation
+document.getElementById('r-files').setAttribute('data-cx','390');
+document.getElementById('r-files').setAttribute('data-cy','148');
+document.getElementById('r-rds').setAttribute('data-cx','585');
+document.getElementById('r-rds').setAttribute('data-cy','88');
+document.getElementById('r-s3').setAttribute('data-cx','585');
+document.getElementById('r-s3').setAttribute('data-cy','208');
+const reqSteps = [
+  { caption:"You call the files service. Traffic enters through the <b>IGW</b> and the <b>ECS security group</b> allows port 8002.", nodes:['r-you','r-igw','r-files','re1','re2'], token:{at:'r-files'} },
+  { caption:"files verifies your JWT locally, then writes a <code>pending</code> row to <b>RDS</b> (allowed by the RDS security group).", nodes:['r-files','r-rds','re3'], token:{at:'r-rds'} },
+  { caption:"files presigns an S3 URL using its <b>IAM task role</b> (no keys). You upload bytes <b>directly to S3</b> — bypassing the service.", nodes:['r-you','r-s3','re4'], token:{at:'r-s3'} },
+  { caption:"S3 emits an <code>ObjectCreated</code> event that triggers the <b>Lambda</b> processor — asynchronously, off the request path.", nodes:['r-s3','r-lambda','re5'], token:{at:'r-lambda'} },
+];
+const rp = new StepPlayer({ svg:'svgreq', steps:reqSteps, caption:'captionr', bar:'barr', token:'rtoken' });
+wirePlayer(rp, { play:'playr', step:'stepr', reset:'resetr' });
+
+// Destroy animation
+function fade(id,o){ const e=document.getElementById(id); if(e) e.style.opacity=o; }
+const desSteps = [
+  { caption:"<b>destroy</b> walks the graph in REVERSE. First the <b>ECS services</b> stop — this is when Fargate billing STOPS.", nodes:['d1'], after:()=>fade('d1',0.2) },
+  { caption:"<b>RDS</b> is deleted (fast because skip_final_snapshot + no deletion protection).", nodes:['d2'], after:()=>fade('d2',0.2) },
+  { caption:"<b>S3</b> (force_destroy) and the <b>Lambda</b> + trigger are removed.", nodes:['d3'], after:()=>fade('d3',0.2) },
+  { caption:"<b>ECR</b> repos (force_delete) and the <b>IAM</b> roles are removed.", nodes:['d4'], after:()=>fade('d4',0.2) },
+  { caption:"Finally the <b>network</b>: security groups, subnets, route table, IGW, and the VPC. Back to $0. ✅", nodes:['d5'], after:()=>fade('d5',0.2) },
+];
+const dp = new StepPlayer({ svg:'svgdes', steps:desSteps, caption:'captiond', bar:'bard' });
+const dStep=dp.step.bind(dp); dp.step=function(){dStep(); const s=this.steps[this.i]; if(s&&s.after)s.after();};
+const dReset=dp.reset.bind(dp); dp.reset=function(){['d1','d2','d3','d4','d5'].forEach(id=>fade(id,1)); dReset();};
+wirePlayer(dp, { play:'playd', step:'stepd', reset:'resetd' });
+</script>
+</body>
+</html>
